@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@components/*": ["components/*"],
+      "@admincomponents/*": ["pagesContent/admin/components/*"],
+      "@helpers/*": ["helpers/*"],
+      "@pages/*": ["pages/*"],
+      "@models/*": ["models/*"],
+      "@utils/*": ["utils/*"],
+      "@server/*": ["server/*"],
+      "@state/*": ["state/*"],
+      "@schemas/*": ["schemas/*"],
+      "@layouts/*": ["layouts/*"]
+    }
+  }
+}

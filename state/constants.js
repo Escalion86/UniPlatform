@@ -1,0 +1,18 @@
+export const SET_COURSES = 'SET_COURSES'
+export const SET_CHAPTERS = 'SET_CHAPTERS'
+export const SET_LECTURES = 'SET_LECTURES'
+export const SET_TASKS = 'SET_TASKS'
+export const SET_ANSWERS = 'SET_ANSWERS'
+export const SET_USERS = 'SET_USERS'
+
+export const SET_MODAL = 'SET_MODAL'
+export const ADD_MODAL = 'ADD_MODAL'
+export const REMOVE_MODAL = 'REMOVE_MODAL'
+export const REMOVE_ALL_MODALS = 'REMOVE_ALL_MODALS'
+
+export const SET_PAGE = 'SET_PAGE'
+
+export const SET_LOADED = 'SET_LOADED'
+
+export const SET_NOTIFICATIONS = 'SET_NOTIFICATIONS'
+export const SET_NOTIFICATION_VIEWED = 'SET_NOTIFICATION_VIEWED'
