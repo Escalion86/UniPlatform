@@ -91,7 +91,7 @@ export default async function auth(req, res) {
         // })
 
         // Если пользователь есть в базе
-        if (result.length) {
+        if (result?.length) {
           // Если аватарка пользователя не сохранена в cloudinary, то сохраняем в cloudinary и обнояем данные пользователя
           // if (
           //   result[0].image &&

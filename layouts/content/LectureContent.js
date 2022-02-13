@@ -1,10 +1,11 @@
 import Divider from '@components/Divider'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import ContentEditable from 'react-contenteditable'
 import cn from 'classnames'
 import { EditText } from 'react-edit-text'
 import ReactPlayer from 'react-player'
 import { putData } from '@helpers/CRUD'
+import Vimeo from '@u-wave/react-vimeo'
 
 const LectureContent = ({
   activeChapter,
@@ -19,6 +20,8 @@ const LectureContent = ({
   const [newChapterState, setNewChapterState] = useState(activeChapter)
   const [newLectureState, setNewLectureState] = useState(activeLecture)
   const description = useRef(activeLecture.description)
+
+  const [pause, setPause] = useState(false)
 
   const updateNewChapter = (data) => {
     setNewChapterState({ ...newChapterState, ...data })
@@ -52,6 +55,21 @@ const LectureContent = ({
     refreshPage()
   }
 
+  const removeTitle = () => {
+    // var node = document.getElementsByClassName(
+    //   'ytp-chrome-top ytp-show-cards-title'
+    // )
+    // if (node.parentNode) {
+    //   node.parentNode.removeChild(node)
+    // }
+
+    var node = document.getElementById('widget2')
+    console.log('node.children', node.children)
+    // if (node.parentNode) {
+    //   node.parentNode.removeChild(node)
+    // }
+  }
+
   return (
     <>
       <div className="relative">
@@ -64,7 +82,9 @@ const LectureContent = ({
             },
             {
               'h-0 w-full': userCourseAccess !== 'admin' && isSideOpen,
-            }
+            },
+            { 'bg-black': pause },
+            { 'delay-1000': !pause }
           )}
         >
           <div className="sticky top-0 flex justify-between w-full h-20">
@@ -155,24 +175,42 @@ const LectureContent = ({
 
         <div
           className={cn(
-            'z-0 w-full duration-300 pointer-events-none',
+            'z-0 w-full duration-300',
             activeLecture?.videoUrl ? 'aspect-w-16 aspect-h-9' : 'h-0'
           )}
         >
           {activeLecture?.videoUrl && (
+            // <iframe
+            //   src="https://www.youtube.com/embed/E7wJTI-1dvQ"
+            //   frameBorder="0"
+            //   allow="autoplay; encrypted-media"
+            //   allowFullScreen
+            //   title="video"
+            // />
             <ReactPlayer
               width="100%"
               height="100%"
-              url={activeLecture?.videoUrl}
+              url={
+                activeLecture?.videoUrl +
+                '?modestbranding=1&;showinfo=0&;autohide=1&;rel=0'
+              }
+              playing={!pause}
               config={{
                 youtube: {
                   playerVars: {
-                    controls: 1,
+                    controls: 0,
                     autoplay: 0,
                     modestbranding: 1,
                     rel: 0,
                     disablekb: 1,
+                    showinfo: 0,
+                    iv_load_policy: 3,
+                    fs: 0,
+                    cc_load_policy: 0,
                   },
+                },
+                vimeo: {
+                  autoplay: true,
                 },
                 // facebook: {
                 //   appId: '12345',
@@ -180,10 +218,22 @@ const LectureContent = ({
               }}
               onDuration={(duration) => console.log('duration', duration)}
             />
+            // <Vimeo
+            //   responsive={true}
+            //   // width="100%"
+            //   // height="100%"
+            //   // style={{ width: '100%', height: '100%' }}
+            //   paused={pause}
+            //   // className="w-full h-full"
+            //   video="672870407"
+            //   autoplay
+            // />
           )}
         </div>
       </div>
       <div className="px-2 tablet:px-12 desktop:w-5/6 laptop:px-20">
+        <button onClick={() => setPause((state) => !state)}>Pause</button>
+        <button onClick={removeTitle}>Удалить заголовок видео</button>
         {editMode && (
           <div className="flex mt-2 gap-x-1 flex-nowrap">
             <span className="whitespace-nowrap">Ссылка на видео: </span>

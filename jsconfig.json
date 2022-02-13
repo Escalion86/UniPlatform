@@ -3,7 +3,6 @@
     "baseUrl": ".",
     "paths": {
       "@components/*": ["components/*"],
-      "@admincomponents/*": ["pagesContent/admin/components/*"],
       "@helpers/*": ["helpers/*"],
       "@pages/*": ["pages/*"],
       "@models/*": ["models/*"],
