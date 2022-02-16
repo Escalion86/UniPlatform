@@ -56,7 +56,6 @@ import { fetchingUserByEmail } from '@helpers/fetchers'
 // }
 
 export default async function auth(req, res) {
-  console.log('NEXTAUTH_URL', process.env.NEXTAUTH_URL)
   return await NextAuth(req, res, {
     // Configure one or more authentication providers
     providers: [
