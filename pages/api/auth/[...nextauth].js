@@ -56,7 +56,15 @@ import { fetchingUserByEmail } from '@helpers/fetchers'
 // }
 
 export default async function auth(req, res) {
+<<<<<<< HEAD
   console.log('process.env.NEXTAUTH_URL', process.env.NEXTAUTH_URL)
+=======
+  console.log(
+    'process.env.GOOGLE_CLIENT_SECRET',
+    process.env.GOOGLE_CLIENT_SECRET
+  )
+  console.log('process.env.GOOGLE_CLIENT_ID', process.env.GOOGLE_CLIENT_ID)
+>>>>>>> 7304bfe09566132aeee8d4141249c602995b8c38
   return await NextAuth(req, res, {
     // Configure one or more authentication providers
     providers: [
