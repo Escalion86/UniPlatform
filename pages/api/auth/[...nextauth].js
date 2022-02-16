@@ -40,20 +40,20 @@ import { fetchingUserByEmail } from '@helpers/fetchers'
 //   clientPromise = client.connect()
 // }
 
-const defaultUserProps = {
-  role: 'client',
-  phone: null,
-  whatsapp: null,
-  viber: null,
-  telegram: null,
-  instagram: null,
-  vk: null,
-  gender: null,
-  birthday: null,
-  updatedAt: Date.now(),
-  lastActivityAt: Date.now(),
-  prevActivityAt: Date.now(),
-}
+// const defaultUserProps = {
+//   role: 'client',
+//   phone: null,
+//   whatsapp: null,
+//   viber: null,
+//   telegram: null,
+//   instagram: null,
+//   vk: null,
+//   gender: null,
+//   birthday: null,
+//   updatedAt: Date.now(),
+//   lastActivityAt: Date.now(),
+//   prevActivityAt: Date.now(),
+// }
 
 export default async function auth(req, res) {
   return await NextAuth(req, res, {
