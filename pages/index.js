@@ -50,7 +50,7 @@ export default function Home(props) {
         <ContentWrapper>
           {courses.map((course) => {
             return (
-              <Link href={`/course/${course._id}`}>
+              <Link key={course._id} href={`/course/${course._id}`}>
                 <a className="px-2 py-1 text-left border-b border-gray-300 cursor-pointer hover:bg-gray-400">
                   {course.title}
                 </a>
