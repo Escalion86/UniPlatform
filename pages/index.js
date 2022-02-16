@@ -1,5 +1,13 @@
 // import dbConnect from '@utils/dbConnect'
 
+import { fetchingCourses } from '@helpers/fetchers'
+import ContentWrapper from '@layouts/content/ContentWrapper'
+import CourseWrapper from '@layouts/content/CourseWrapper'
+import Header from '@layouts/Header'
+import { getSession } from 'next-auth/react'
+import Head from 'next/head'
+import Link from 'next/link'
+
 // import csv from '../tilda.csv'
 
 // const csvToJsonFunc = () => {
@@ -19,41 +27,57 @@
 //   // console.log(`json`, js`on)
 // }
 
-export default function Home() {
+const CourseCard = ({ course }) => {
+  return <div className=""></div>
+}
+
+export default function Home(props) {
+  const { courses, user } = props
   // const { height, width } = useWindowDimensions()
   // const { data: session, status } = useSession()
   // const loading = status === 'loading'
 
   // if (session) console.log(`session`, session)
-
-  return <div>Главная страница</div>
+  console.log('courses', courses)
+  console.log('user', user)
+  return (
+    <>
+      <Head>
+        <title>Uniplatform</title>
+      </Head>
+      <CourseWrapper>
+        <Header user={user} title="Uniplatform" />
+        <ContentWrapper>
+          {courses.map((course) => {
+            return (
+              <Link href={`/course/${course._id}`}>
+                <a className="px-2 py-1 text-left border-b border-gray-300 cursor-pointer hover:bg-gray-400">
+                  {course.title}
+                </a>
+              </Link>
+            )
+          })}
+        </ContentWrapper>
+      </CourseWrapper>
+    </>
+  )
 }
 
-/* Retrieves pet(s) data from mongodb database */
-// export async function getServerSideProps() {
-//   await dbConnect()
+export const getServerSideProps = async (context) => {
+  const session = await getSession({ req: context.req })
 
-//   const productTypes = prepareFetchProps(await ProductTypes.find({}).lean())
-//   const setTypes = prepareFetchProps(await SetTypes.find({}).lean())
-//   const sets = prepareFetchProps(await Sets.find({}).lean())
-//   const products = prepareFetchProps(await Products.find({}).lean())
-//   const districts = prepareFetchProps(await Districts.find({}).lean())
+  try {
+    const courses = await fetchingCourses(null, process.env.NEXTAUTH_URL)
 
-//   return {
-//     props: {
-//       products,
-//       productTypes,
-//       sets,
-//       setTypes,
-//       districts,
-//     },
-//   }
-// }
-
-// export async function getServerSideProps(ctx) {
-//   return {
-//     props: {
-//       session: await getSession(ctx),
-//     },
-//   }
-// }
+    return {
+      props: {
+        courses,
+        user: session?.user ? session.user : null,
+      },
+    }
+  } catch {
+    return {
+      notFound: true,
+    }
+  }
+}

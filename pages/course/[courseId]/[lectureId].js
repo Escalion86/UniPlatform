@@ -16,7 +16,7 @@ import { motion } from 'framer-motion'
 import { getSession } from 'next-auth/react'
 
 import Head from 'next/head'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import cn from 'classnames'
 import 'react-edit-text/dist/index.css'
 import { putData } from '@helpers/CRUD'
@@ -28,6 +28,8 @@ import LoadingContent from '@layouts/content/LoadingContent'
 import LectureContent from '@layouts/content/LectureContent'
 import CourseWrapper from '@layouts/content/CourseWrapper'
 import CourseContent from '@layouts/content/CourseContent'
+import ContentWrapper from '@layouts/content/ContentWrapper'
+import { sendImage, sendVideo } from '@helpers/cloudinary'
 
 function CoursePage(props) {
   const {
@@ -61,8 +63,6 @@ function CoursePage(props) {
     }
   }
 
-  console.log('activeLecture', activeLecture)
-
   const goToCourseGeneralPage = () => router.replace('/course/' + course._id)
 
   return (
@@ -77,7 +77,11 @@ function CoursePage(props) {
       </Head>
       <CourseWrapper>
         {/* ----------------------------- HEADER ------------------------------- */}
-        <Header user={user} course={course} />
+        <Header
+          user={user}
+          title={course.title}
+          titleLink={`/course/${course._id}/general`}
+        />
         {/* ----------------------------- SIDEBAR ------------------------------- */}
         {loading && <LoadingContent />}
         {!loading && (
@@ -99,12 +103,8 @@ function CoursePage(props) {
               setLoading={setLoading}
             />
             {/* ----------------------------- CONTENT ------------------------------- */}
-
-            <div
-              className="flex flex-col w-full overflow-scroll"
-              style={{ gridArea: 'content' }}
-            >
-              {!activeLecture && (
+            <ContentWrapper>
+              {/* {!activeLecture && (
                 <CourseContent
                   course={course}
                   activeChapter={activeChapter}
@@ -117,19 +117,20 @@ function CoursePage(props) {
                   setIsSideOpen={setIsSideOpen}
                 />
               )}
-              {activeLecture && (
-                <LectureContent
-                  activeChapter={activeChapter}
-                  activeLecture={activeLecture}
-                  setEditMode={setEditMode}
-                  editMode={editMode}
-                  userCourseAccess={userCourseAccess}
-                  isSideOpen={isSideOpen}
-                  refreshPage={refreshPage}
-                  setIsSideOpen={setIsSideOpen}
-                />
-              )}
-            </div>
+              {activeLecture && ( */}
+              <LectureContent
+                course={course}
+                activeChapter={activeChapter}
+                activeLecture={activeLecture}
+                setEditMode={setEditMode}
+                editMode={editMode}
+                userCourseAccess={userCourseAccess}
+                isSideOpen={isSideOpen}
+                refreshPage={refreshPage}
+                setIsSideOpen={setIsSideOpen}
+              />
+              {/* )} */}
+            </ContentWrapper>
           </>
         )}
       </CourseWrapper>
@@ -191,7 +192,7 @@ export const getServerSideProps = async (context) => {
   try {
     const resp = await fetchingCourseAndHisChaptersAndLecturesAndTasks(
       params.courseId,
-      'http://localhost:3000'
+      process.env.NEXTAUTH_URL
     )
 
     // console.log('resp', resp)
@@ -230,13 +231,13 @@ export const getServerSideProps = async (context) => {
     const allUserAnswers = await fetchingAnswersByUserId(
       userId,
       null,
-      'http://localhost:3000'
+      process.env.NEXTAUTH_URL
     )
 
     const userViewedLectures = await fetchingUserViewedLecturesByUserId(
       userId,
       null,
-      'http://localhost:3000'
+      process.env.NEXTAUTH_URL
     )
 
     const userViewedLecturesIds = userViewedLectures.map(

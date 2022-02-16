@@ -3,13 +3,17 @@ import { useEffect, useRef, useState } from 'react'
 import ContentEditable from 'react-contenteditable'
 import cn from 'classnames'
 import { EditText } from 'react-edit-text'
-import ReactPlayer from 'react-player'
+// import ReactPlayer from 'react-player'
 import { putData } from '@helpers/CRUD'
-import Vimeo from '@u-wave/react-vimeo'
+import { deleteImage, sendVideo } from '@helpers/cloudinary'
+import LoadingSpinner from '@components/LoadingSpinner'
+// import { Transformation, Video } from 'cloudinary-react'
+import VideoPlayer from '@components/VideoPlayer'
 
 const LectureContent = ({
-  activeChapter,
-  activeLecture,
+  course,
+  activeChapter = false,
+  activeLecture = false,
   setEditMode,
   editMode,
   userCourseAccess,
@@ -17,11 +21,29 @@ const LectureContent = ({
   setIsSideOpen,
   refreshPage,
 }) => {
+  const isOpenedCourse = !activeLecture
+  const videoUrl = isOpenedCourse ? course?.videoUrl : activeLecture?.videoUrl
+
+  const [newCourseState, setNewCourseState] = useState(course)
   const [newChapterState, setNewChapterState] = useState(activeChapter)
   const [newLectureState, setNewLectureState] = useState(activeLecture)
-  const description = useRef(activeLecture.description)
+  const description = useRef(
+    isOpenedCourse ? course.description : activeLecture.description
+  )
+  const [isVideoSending, setIsVideoSending] = useState(false)
+
+  const hiddenFileInput = useRef(null)
+
+  useEffect(() => {
+    setNewChapterState(activeChapter)
+    setNewLectureState(activeLecture)
+  }, [activeLecture, activeChapter])
 
   const [pause, setPause] = useState(false)
+
+  const updateNewCourse = (data) => {
+    setNewCourseState({ ...newCourseState, ...data })
+  }
 
   const updateNewChapter = (data) => {
     setNewChapterState({ ...newChapterState, ...data })
@@ -31,7 +53,7 @@ const LectureContent = ({
     setNewLectureState({ ...newLectureState, ...data })
   }
 
-  const handleChangeLecture = (evt) => {
+  const handleChangeDescription = (evt) => {
     description.current = evt.target.value
   }
 
@@ -55,47 +77,68 @@ const LectureContent = ({
     refreshPage()
   }
 
-  const removeTitle = () => {
-    // var node = document.getElementsByClassName(
-    //   'ytp-chrome-top ytp-show-cards-title'
-    // )
-    // if (node.parentNode) {
-    //   node.parentNode.removeChild(node)
-    // }
+  const saveCourse = async (params) => {
+    await putData(`/api/courses/${course._id}`, params)
+    refreshPage()
+  }
 
-    var node = document.getElementById('widget2')
-    console.log('node.children', node.children)
-    // if (node.parentNode) {
-    //   node.parentNode.removeChild(node)
-    // }
+  const selectVideoClick = (event) => {
+    hiddenFileInput.current.click()
+  }
+
+  const deleteVideo = async () => {
+    if (isOpenedCourse && course.videoUrl)
+      await deleteImage(
+        `obnimisharik_courses_dev/courses/${course._id}/video`,
+        'video'
+      )
+    if (!isOpenedCourse && activeLecture.videoUrl)
+      await deleteImage(
+        `obnimisharik_courses_dev/lectures/${activeLecture._id}/video`,
+        'video'
+      )
+  }
+
+  const onChangeFile = async (newFile) => {
+    if (newFile) {
+      setIsVideoSending(true)
+      await deleteVideo()
+      sendVideo(
+        newFile,
+        (videoUrl) => {
+          if (isOpenedCourse) {
+            saveCourse({ videoUrl })
+          } else {
+            saveLecture({ videoUrl })
+          }
+          setIsVideoSending(false)
+          // refreshPage()
+        },
+        activeLecture ? 'lectures' : 'courses',
+        `${activeLecture ? activeLecture._id : course._id}/video`
+      )
+    }
   }
 
   return (
     <>
-      <div className="relative">
+      <div className="relative group">
         <div
           className={cn(
             'flex justify-between',
             {
-              'absolute top-0 left-0 z-10 w-full h-full group':
-                activeLecture?.videoUrl,
+              'absolute top-0 left-0 z-10 w-full': videoUrl,
             },
             {
               'h-0 w-full': userCourseAccess !== 'admin' && isSideOpen,
-            },
-            { 'bg-black': pause },
-            { 'delay-1000': !pause }
+            }
           )}
         >
           <div className="sticky top-0 flex justify-between w-full h-20">
             <div
               className={cn(
                 'overflow-hidden duration-200 h-auto',
-                isSideOpen
-                  ? 'w-0'
-                  : activeLecture?.videoUrl
-                  ? 'w-0 group-hover:w-56'
-                  : 'w-56'
+                isSideOpen ? 'w-0' : videoUrl ? 'w-0 group-hover:w-56' : 'w-56'
               )}
             >
               <button
@@ -112,10 +155,7 @@ const LectureContent = ({
                 <div
                   className={cn(
                     'duration-200 overflow-hidden ',
-                    // editMode
-                    //   ? 'w-0'
-                    //   :
-                    activeLecture?.videoUrl ? 'w-0 group-hover:w-80' : 'w-80'
+                    videoUrl ? 'w-0 group-hover:w-80' : 'w-80'
                   )}
                 >
                   <button
@@ -176,65 +216,102 @@ const LectureContent = ({
         <div
           className={cn(
             'z-0 w-full duration-300',
-            activeLecture?.videoUrl ? 'aspect-w-16 aspect-h-9' : 'h-0'
+            videoUrl ? 'aspect-w-16 aspect-h-9' : 'h-0'
           )}
         >
-          {activeLecture?.videoUrl && (
-            // <iframe
-            //   src="https://www.youtube.com/embed/E7wJTI-1dvQ"
-            //   frameBorder="0"
-            //   allow="autoplay; encrypted-media"
-            //   allowFullScreen
-            //   title="video"
-            // />
-            <ReactPlayer
-              width="100%"
-              height="100%"
-              url={
-                activeLecture?.videoUrl +
-                '?modestbranding=1&;showinfo=0&;autohide=1&;rel=0'
-              }
-              playing={!pause}
-              config={{
-                youtube: {
-                  playerVars: {
-                    controls: 0,
-                    autoplay: 0,
-                    modestbranding: 1,
-                    rel: 0,
-                    disablekb: 1,
-                    showinfo: 0,
-                    iv_load_policy: 3,
-                    fs: 0,
-                    cc_load_policy: 0,
-                  },
-                },
-                vimeo: {
-                  autoplay: true,
-                },
-                // facebook: {
-                //   appId: '12345',
-                // },
-              }}
-              onDuration={(duration) => console.log('duration', duration)}
-            />
-            // <Vimeo
-            //   responsive={true}
-            //   // width="100%"
-            //   // height="100%"
-            //   // style={{ width: '100%', height: '100%' }}
-            //   paused={pause}
-            //   // className="w-full h-full"
-            //   video="672870407"
-            //   autoplay
+          {videoUrl && (
+            <VideoPlayer src={videoUrl} />
+            // <video
+            //   controlsList="nodownload noremoteplayback"
+            //   controls
+            //   // publicId={`obnimisharik_courses_dev/${
+            //   //   isOpenedCourse
+            //   //     ? `courses/${course._id}`
+            //   //     : `lectures/${activeLecture._id}`
+            //   // }/video`}
+            //   // width="400"
+            // >
+            //   <source
+            //     src={
+            //       isOpenedCourse ? course?.videoUrl : activeLecture?.videoUrl
+            //     }
+            //     // type="video/mp4"
+            //   />
+            // </video>
+            // <ReactPlayer
+            //   width="100%"
+            //   height="100%"
+            //   url={
+            //     (isOpenedCourse ? course.videoUrl : activeLecture.videoUrl) +
+            //     '?modestbranding=1&;showinfo=0&;autohide=1&;rel=0'
+            //   }
+            //   playing={!pause}
+            //   config={{
+            //     youtube: {
+            //       playerVars: {
+            //         controls: 0,
+            //         autoplay: 0,
+            //         modestbranding: 1,
+            //         rel: 0,
+            //         disablekb: 1,
+            //         showinfo: 0,
+            //         iv_load_policy: 3,
+            //         fs: 0,
+            //         cc_load_policy: 0,
+            //       },
+            //     },
+            //     vimeo: {
+            //       autoplay: true,
+            //     },
+            //     // facebook: {
+            //     //   appId: '12345',
+            //     // },
+            //   }}
+            //   onDuration={(duration) => console.log('duration', duration)}
             // />
           )}
         </div>
       </div>
-      <div className="px-2 tablet:px-12 desktop:w-5/6 laptop:px-20">
-        <button onClick={() => setPause((state) => !state)}>Pause</button>
-        <button onClick={removeTitle}>Удалить заголовок видео</button>
+      <div className="flex flex-col px-2 tablet:px-12 desktop:w-5/6 laptop:px-20">
         {editMode && (
+          <div className="mt-2">
+            <input
+              type="file"
+              ref={hiddenFileInput}
+              onChange={(e) => onChangeFile(e.target.files[0])}
+              style={{ display: 'none' }}
+              accept="video/mp4,video/x-m4v,video/*"
+              // accept="image/jpeg,image/png"
+            />
+            {isVideoSending ? (
+              <div className="flex items-center gap-2">
+                <span>
+                  Пожалуйста не закрывайте окно браузера. Загружается видео...
+                </span>
+                <LoadingSpinner size="xs" />
+              </div>
+            ) : (
+              <div className="flex gap-x-2">
+                <button
+                  className="px-2 py-1 bg-gray-200 border border-gray-400 hover:bg-gray-400"
+                  onClick={selectVideoClick}
+                >
+                  {videoUrl ? 'Загрузить другое видео' : 'Загрузить видео'}
+                </button>
+                {videoUrl && (
+                  <button
+                    className="px-2 py-1 bg-gray-200 border border-gray-400 hover:bg-gray-400"
+                    onClick={deleteVideo}
+                  >
+                    Удалить видео
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* {editMode && (
           <div className="flex mt-2 gap-x-1 flex-nowrap">
             <span className="whitespace-nowrap">Ссылка на видео: </span>
             <EditText
@@ -249,8 +326,10 @@ const LectureContent = ({
               // }}
               value={
                 editMode
-                  ? newLectureState.videoUrl ?? ''
-                  : activeLecture?.videoUrl ?? ''
+                  ? isOpenedCourse
+                    ? newCourseState.videoUrl
+                    : newLectureState.videoUrl ?? ''
+                  : videoUrl ?? ''
               }
               // inline
               onChange={(videoUrl) => {
@@ -260,10 +339,12 @@ const LectureContent = ({
               readonly={!editMode}
             />
           </div>
-        )}
+        )} */}
         <h2 className="flex py-2 text-2xl font-bold flex-nowrap gap-x-1">
           <span className="whitespace-nowrap">
-            Раздел №{activeChapter?.index + 1} -
+            {isOpenedCourse
+              ? `Курс - `
+              : `Раздел №${activeChapter?.index + 1} - `}
           </span>
           <EditText
             className={cn(
@@ -272,63 +353,90 @@ const LectureContent = ({
             )}
             value={
               editMode
-                ? newChapterState.title ?? ''
+                ? isOpenedCourse
+                  ? newCourseState.title
+                  : newChapterState?.title ?? ''
+                : isOpenedCourse
+                ? course.title
                 : activeChapter?.title ?? ''
             }
             // inline
-            onChange={(title) => updateNewChapter({ title })}
-            onSave={({ value }) => saveChapter({ title: value })}
+            onChange={(title) => {
+              if (isOpenedCourse) {
+                updateNewCourse({ title })
+              } else {
+                updateNewChapter({ title })
+              }
+            }}
+            onSave={({ value }) => {
+              if (isOpenedCourse) {
+                saveCourse({ title: value })
+              } else {
+                saveChapter({ title: value })
+              }
+            }}
             readonly={!editMode}
           />
         </h2>
         {/* <h3 className="py-2 text-xl font-bold">
               Лекция №{activeLecture.index + 1} - {activeLecture.title}
             </h3> */}
-        <div
-          className="flex py-2 text-xl font-bold flex-nowrap gap-x-1"
-          // style={{ whiteSpace: 'nowrap' }}
-        >
-          <span className="whitespace-nowrap">
-            Лекция №{activeLecture?.index + 1} -
-          </span>
+        {!isOpenedCourse && (
+          <div
+            className="flex py-2 text-xl font-bold flex-nowrap gap-x-1"
+            // style={{ whiteSpace: 'nowrap' }}
+          >
+            <span className="whitespace-nowrap">
+              Лекция №{activeLecture?.index + 1} -
+            </span>
 
-          <EditText
-            className={cn(
-              'w-full px-1 py-0 m-0 font-bold whitespace-normal border-b outline-none',
-              editMode ? 'border-purple-600' : 'border-transparent'
-            )}
-            value={
-              editMode
-                ? newLectureState.title ?? ''
-                : activeLecture?.title ?? ''
-            }
-            // inline
-            onChange={(title) => {
-              updateNewLecture({ title })
-            }}
-            onSave={({ value }) => saveLecture({ title: value })}
-            readonly={!editMode}
-          />
-        </div>
+            <EditText
+              className={cn(
+                'w-full px-1 py-0 m-0 font-bold whitespace-normal border-b outline-none',
+                editMode ? 'border-purple-600' : 'border-transparent'
+              )}
+              value={
+                editMode
+                  ? newLectureState?.title ?? ''
+                  : activeLecture?.title ?? ''
+              }
+              // inline
+              onChange={(title) => {
+                updateNewLecture({ title })
+              }}
+              onSave={({ value }) => saveLecture({ title: value })}
+              readonly={!editMode}
+            />
+          </div>
+        )}
         <Divider light />
         {/* <div className="text-base">{activeLecture.description}</div> */}
         {editMode ? (
           <ContentEditable
             className="border-b border-purple-600 outline-none"
             // innerRef={this.contentEditable}
-            html={activeLecture.description} // innerHTML of the editable div
+            html={
+              isOpenedCourse ? course.description : activeLecture.description
+            } // innerHTML of the editable div
             disabled={false} // use true to disable editing
-            onChange={handleChangeLecture} // handle innerHTML change
+            onChange={handleChangeDescription} // handle innerHTML change
             // html={description.current}
             onBlur={() => {
-              console.log('text', description.current)
-              saveLecture({ description: description.current })
+              if (isOpenedCourse) {
+                saveCourse({ description: description.current })
+              } else {
+                saveLecture({ description: description.current })
+              }
             }}
             // tagName='article' // Use a custom HTML tag (uses a div by default)
           />
         ) : (
           <div
-            dangerouslySetInnerHTML={{ __html: activeLecture.description }}
+            dangerouslySetInnerHTML={{
+              __html: isOpenedCourse
+                ? course.description
+                : activeLecture.description,
+            }}
           ></div>
         )}
       </div>

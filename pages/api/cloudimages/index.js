@@ -22,8 +22,11 @@ export default async function handler(req, res) {
     //   break
     case 'DELETE' /* Delete a model by its ID */:
       try {
-        cloudinary.v2.uploader.destroy(req.body, (error, result) =>
-          console.log(result, error)
+        const { imagePublicId, resource_type } = JSON.parse(req.body)
+        cloudinary.v2.uploader.destroy(
+          imagePublicId,
+          { resource_type },
+          (error, result) => console.log(result, error)
         )
         res.status(200).json({ success: true, data: {} })
       } catch (error) {

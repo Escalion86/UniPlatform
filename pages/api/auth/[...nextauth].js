@@ -83,7 +83,7 @@ export default async function auth(req, res) {
         const result = await fetchingUserByEmail(
           userEmail,
           null,
-          'http://localhost:3000'
+          process.env.NEXTAUTH_URL
         )
         // console.log('result', result)
         // const result = await Users.find({

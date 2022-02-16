@@ -5,6 +5,8 @@ import 'react-medium-image-zoom/dist/styles.css'
 
 import Head from 'next/head'
 import { SessionProvider } from 'next-auth/react'
+import { CloudinaryContext } from 'cloudinary-react'
+import Script from 'next/script'
 
 // import { createStore, applyMiddleware, compose } from 'redux'
 // import thunk from 'redux-thunk'
@@ -41,11 +43,18 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }) {
           href="https://cdn.jsdelivr.net/npm/@tailwindcss/custom-forms@0.2.1/dist/custom-forms.css"
           rel="stylesheet"
         />
+        <Script
+          strategy="afterInteractive"
+          src="https://cdn.jsdelivr.net/npm/@thelevicole/youtube-to-html5-loader@4.0.1/dist/YouTubeToHtml5.min.js"
+        />
+        <Script strategy="afterInteractive">{`new YouTubeToHtml5()`}</Script>
         {/* <script src="https://smtpjs.com/v3/smtp.js"></script> */}
       </Head>
       <SessionProvider session={session} refetchInterval={5 * 60}>
         {/* <Provider store={store}> */}
-        <Component {...pageProps} />
+        <CloudinaryContext cloudName="escalion-ru">
+          <Component {...pageProps} />
+        </CloudinaryContext>
         {/* </Provider> */}
       </SessionProvider>
     </>

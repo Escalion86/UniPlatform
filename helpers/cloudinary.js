@@ -1,6 +1,6 @@
 import { CLOUDINARY_FOLDER } from './constants'
 
-export const deleteImage = async (imagePublicId) => {
+export const deleteImage = async (imagePublicId, resource_type = 'image') => {
   // const { id } = router.query
 
   try {
@@ -10,7 +10,7 @@ export const deleteImage = async (imagePublicId) => {
       //   Accept: contentType,
       //   'Content-Type': contentType,
       // },
-      body: imagePublicId,
+      body: JSON.stringify({ imagePublicId, resource_type }),
     })
 
     // Throw error with status code in case Fetch API req failed
@@ -83,6 +83,48 @@ export const sendImage = async (
           return data.secure_url
         }
       })
-      .catch((err) => console.error(err))
+      .catch((err) => console.error('ERROR', err))
+  }
+}
+
+export const sendVideo = async (
+  video,
+  callback,
+  folder = null,
+  videoName = null
+) => {
+  if (typeof video === 'object') {
+    // console.log(
+    //   'send video to',
+    //   (folder ? CLOUDINARY_FOLDER + '_' + folder : CLOUDINARY_FOLDER) +
+    //     '/' +
+    //     videoName
+    // )
+    const formData = new FormData()
+    formData.append('file', video)
+    formData.append(
+      'upload_preset',
+      folder ? CLOUDINARY_FOLDER + '_' + folder : CLOUDINARY_FOLDER
+    )
+    if (videoName) {
+      formData.append('public_id', videoName)
+    }
+
+    return await fetch(
+      'https://api.cloudinary.com/v1_1/escalion-ru/video/upload',
+      {
+        method: 'POST',
+        body: formData,
+      }
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        console.log('data of sended video file', data)
+        if (data.secure_url !== '') {
+          if (callback) callback(data.secure_url)
+          return data.secure_url
+        }
+      })
+      .catch((err) => console.error('ERROR', err))
   }
 }

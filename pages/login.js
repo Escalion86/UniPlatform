@@ -22,6 +22,7 @@ const Login = () => {
       console.log('session', session)
       console.log('courseId', courseId)
       if (courseId && lectureId) router.push(`/course/${courseId}/${lectureId}`)
+      else router.push(`/`)
       // // Если авторизированы
       // const fetching = async () => {
       //   // const result = await fetchingAll(setData)
