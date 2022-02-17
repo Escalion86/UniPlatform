@@ -306,10 +306,10 @@ export default function Home(props) {
 
 export const getServerSideProps = async (context) => {
   const session = await getSession({ req: context.req })
-
+  console.log('session', session)
   try {
     const courses = await fetchingCourses(null, process.env.NEXTAUTH_URL)
-
+    console.log('courses', courses)
     return {
       props: {
         courses,
@@ -318,7 +318,11 @@ export const getServerSideProps = async (context) => {
     }
   } catch {
     return {
-      notFound: true,
+      props: {
+        courses: null,
+        user: session?.user ? session.user : null,
+      },
+      // notFound: true,
     }
   }
 }
