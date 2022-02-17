@@ -57,6 +57,7 @@ import { fetchingUserByEmail } from '@helpers/fetchers'
 
 export default async function auth(req, res) {
   return await NextAuth(req, res, {
+    secret: process.env.SECRET,
     // Configure one or more authentication providers
     providers: [
       // Providers.Email({
@@ -77,6 +78,7 @@ export default async function auth(req, res) {
     ],
     callbacks: {
       async session({ session, token }) {
+        console.log('session', session)
         const { user } = session
         const userEmail = user.email.toLowerCase()
         // const cached = await dbConnect()
