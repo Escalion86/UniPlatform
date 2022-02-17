@@ -82,6 +82,7 @@ export default async function auth(req, res) {
         const { user } = session
         const userEmail = user.email.toLowerCase()
         // const cached = await dbConnect()
+        console.log('process.env.NEXTAUTH_SITE', process.env.NEXTAUTH_SITE)
         const result = await fetchingUserByEmail(
           userEmail,
           null,
