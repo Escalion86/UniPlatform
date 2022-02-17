@@ -192,7 +192,7 @@ export const getServerSideProps = async (context) => {
   try {
     const resp = await fetchingCourseAndHisChaptersAndLecturesAndTasks(
       params.courseId,
-      process.env.NEXTAUTH_URL
+      process.env.NEXTAUTH_SITE
     )
 
     // console.log('resp', resp)
@@ -231,13 +231,13 @@ export const getServerSideProps = async (context) => {
     const allUserAnswers = await fetchingAnswersByUserId(
       userId,
       null,
-      process.env.NEXTAUTH_URL
+      process.env.NEXTAUTH_SITE
     )
 
     const userViewedLectures = await fetchingUserViewedLecturesByUserId(
       userId,
       null,
-      process.env.NEXTAUTH_URL
+      process.env.NEXTAUTH_SITE
     )
 
     const userViewedLecturesIds = userViewedLectures.map(

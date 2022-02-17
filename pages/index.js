@@ -308,7 +308,7 @@ export const getServerSideProps = async (context) => {
   const session = await getSession({ req: context.req })
   console.log('session', session)
   try {
-    const courses = await fetchingCourses(null, process.env.NEXTAUTH_URL)
+    const courses = await fetchingCourses(null, process.env.NEXTAUTH_SITE)
     console.log('courses', courses)
     return {
       props: {

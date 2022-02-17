@@ -15,7 +15,7 @@ export async function fetchingAll(setState = () => {}) {
 
 export async function fetchingCourses(
   updateData = null,
-  domen = process.env.NEXTAUTH_URL
+  domen = process.env.NEXTAUTH_SITE
 ) {
   console.log('Запущен fetchingCourses')
   const resp = await fetch(`${domen}/api/courses`)
@@ -28,7 +28,7 @@ export async function fetchingCourses(
 export async function fetchingCourse(
   id,
   updateData = null,
-  domen = process.env.NEXTAUTH_URL
+  domen = process.env.NEXTAUTH_SITE
 ) {
   console.log('Запущен fetchingCourse')
   const resp = await fetch(`${domen}/api/courses/${id}`)
@@ -40,7 +40,7 @@ export async function fetchingCourse(
 
 export async function fetchingCourseAndHisChaptersAndLecturesAndTasks(
   courseId,
-  domen = process.env.NEXTAUTH_URL
+  domen = process.env.NEXTAUTH_SITE
 ) {
   console.log('Запущен fetchingCourseAndHisChaptersAndLectures')
   const course = await fetchingCourse(courseId, null, domen)
@@ -70,7 +70,7 @@ export async function fetchingCourseAndHisChaptersAndLecturesAndTasks(
 
 export async function fetchingChapters(
   updateData = null,
-  domen = process.env.NEXTAUTH_URL
+  domen = process.env.NEXTAUTH_SITE
 ) {
   console.log('Запущен fetchingChapters')
   const resp = await fetch(`${domen}/api/chapters`)
@@ -83,7 +83,7 @@ export async function fetchingChapters(
 export async function fetchingChapter(
   id,
   updateData = null,
-  domen = process.env.NEXTAUTH_URL
+  domen = process.env.NEXTAUTH_SITE
 ) {
   console.log('Запущен fetchingChapter')
   const resp = await fetch(`${domen}/api/chapters/${id}`)
@@ -96,7 +96,7 @@ export async function fetchingChapter(
 export async function fetchingChaptersByCourseId(
   id,
   updateData = null,
-  domen = process.env.NEXTAUTH_URL
+  domen = process.env.NEXTAUTH_SITE
 ) {
   console.log('Запущен fetchingChapterByCourseId')
   const resp = await fetch(`${domen}/api/chapters/byCourse/${id}`)
@@ -108,7 +108,7 @@ export async function fetchingChaptersByCourseId(
 
 export async function fetchingLectures(
   updateData = null,
-  domen = process.env.NEXTAUTH_URL
+  domen = process.env.NEXTAUTH_SITE
 ) {
   console.log('Запущен fetchingLectures')
   const resp = await fetch(`${domen}/api/lectures`)
@@ -121,7 +121,7 @@ export async function fetchingLectures(
 export async function fetchingLecturesByChapterId(
   id,
   updateData = null,
-  domen = process.env.NEXTAUTH_URL
+  domen = process.env.NEXTAUTH_SITE
 ) {
   console.log('Запущен fetchingLectureByChapterId')
   const resp = await fetch(`${domen}/api/lectures/byChapter/${id}`)
@@ -133,7 +133,7 @@ export async function fetchingLecturesByChapterId(
 
 export async function fetchingTasks(
   updateData = null,
-  domen = process.env.NEXTAUTH_URL
+  domen = process.env.NEXTAUTH_SITE
 ) {
   console.log('Запущен fetchingTasks')
   const resp = await fetch(`${domen}/api/tasks`)
@@ -146,7 +146,7 @@ export async function fetchingTasks(
 export async function fetchingTask(
   id,
   updateData = null,
-  domen = process.env.NEXTAUTH_URL
+  domen = process.env.NEXTAUTH_SITE
 ) {
   console.log('Запущен fetchingTask')
   const resp = await fetch(`${domen}/api/tasks/${id}`)
@@ -159,7 +159,7 @@ export async function fetchingTask(
 export async function fetchingTasksByLectureId(
   id,
   updateData = null,
-  domen = process.env.NEXTAUTH_URL
+  domen = process.env.NEXTAUTH_SITE
 ) {
   console.log('Запущен fetchingTasksByLectureId')
   const resp = await fetch(`${domen}/api/tasks/byLecture/${id}`)
@@ -171,7 +171,7 @@ export async function fetchingTasksByLectureId(
 
 export async function fetchingAnswers(
   updateData = null,
-  domen = process.env.NEXTAUTH_URL
+  domen = process.env.NEXTAUTH_SITE
 ) {
   console.log('Запущен fetchingAnswers')
   const resp = await fetch(`${domen}/api/answers`)
@@ -184,7 +184,7 @@ export async function fetchingAnswers(
 export async function fetchingAnswer(
   id,
   updateData = null,
-  domen = process.env.NEXTAUTH_URL
+  domen = process.env.NEXTAUTH_SITE
 ) {
   console.log('Запущен fetchingAnswer')
   const resp = await fetch(`${domen}/api/answers/${id}`)
@@ -197,7 +197,7 @@ export async function fetchingAnswer(
 export async function fetchingAnswersByTaskId(
   id,
   updateData = null,
-  domen = process.env.NEXTAUTH_URL
+  domen = process.env.NEXTAUTH_SITE
 ) {
   console.log('Запущен fetchingAnswersByTaskId')
   const resp = await fetch(`${domen}/api/answers/byTask/${id}`)
@@ -210,7 +210,7 @@ export async function fetchingAnswersByTaskId(
 export async function fetchingAnswersByUserId(
   id,
   updateData = null,
-  domen = process.env.NEXTAUTH_URL
+  domen = process.env.NEXTAUTH_SITE
 ) {
   console.log('Запущен fetchingAnswersByUserId')
   const resp = await fetch(`${domen}/api/answers/byUser/${id}`)
@@ -223,7 +223,7 @@ export async function fetchingAnswersByUserId(
 export async function fetchingUserViewedLecturesByUserId(
   id,
   updateData = null,
-  domen = process.env.NEXTAUTH_URL
+  domen = process.env.NEXTAUTH_SITE
 ) {
   console.log('Запущен fetchingUserViewedLecturesByUserId')
   const resp = await fetch(`${domen}/api/userviewedlectures/byUser/${id}`)
@@ -235,7 +235,7 @@ export async function fetchingUserViewedLecturesByUserId(
 
 export async function fetchingUserViewedLectures(
   updateData = null,
-  domen = process.env.NEXTAUTH_URL
+  domen = process.env.NEXTAUTH_SITE
 ) {
   console.log('Запущен fetchingUserViewedLectures')
   const resp = await fetch(`${domen}/api/userviewedlectures`)
@@ -247,7 +247,7 @@ export async function fetchingUserViewedLectures(
 
 export async function fetchingUsers(
   updateData = null,
-  domen = process.env.NEXTAUTH_URL
+  domen = process.env.NEXTAUTH_SITE
 ) {
   console.log('Запущен fetchingUsers')
   const resp = await fetch(`${domen}/api/users`)
@@ -260,7 +260,7 @@ export async function fetchingUsers(
 export async function fetchingUserByEmail(
   email,
   updateData = null,
-  domen = process.env.NEXTAUTH_URL
+  domen = process.env.NEXTAUTH_SITE
 ) {
   console.log('Запущен fetchingUserByEmail')
   const resp = await fetch(`${domen}/api/users/byEmail/${email}`)

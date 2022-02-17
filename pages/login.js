@@ -5,22 +5,12 @@ import { useRouter } from 'next/router'
 const Login = () => {
   const router = useRouter()
   const { data: session, status } = useSession()
-  const loading = status === 'loading'
-  console.log('router.query', router.query)
   const { courseId, lectureId } = router.query
-  // console.log('props', props)
-
-  console.log('session', session)
-
-  console.log('loading', loading)
 
   useEffect(() => {
-    if (!session && !loading) {
+    if (!session && status !== 'loading') {
       signIn('google')
     } else if (status === 'authenticated') {
-      console.log('авторизован')
-      console.log('session', session)
-      console.log('courseId', courseId)
       if (courseId && lectureId) router.push(`/course/${courseId}/${lectureId}`)
       else router.push(`/`)
       // // Если авторизированы

@@ -85,7 +85,7 @@ export default async function auth(req, res) {
         const result = await fetchingUserByEmail(
           userEmail,
           null,
-          process.env.NEXTAUTH_URL
+          process.env.NEXTAUTH_SITE
         )
         // console.log('result', result)
         // const result = await Users.find({
