@@ -29,6 +29,7 @@ module.exports = {
       }),
       colors: {
         header: '#4D9DC4',
+        general: '#9563ff',
         primary: '#2A323B',
         secondary: '#4C8BF7',
         third: '#176D8F',
@@ -214,6 +215,13 @@ module.exports = {
       },
       transitionDuration: {
         400: '400ms',
+      },
+      backgroundSize: {
+        'size-200': '200% 200%',
+      },
+      backgroundPosition: {
+        'pos-0': '0% 0%',
+        'pos-100': '100% 100%',
       },
     },
   },

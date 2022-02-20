@@ -7,7 +7,7 @@ import ContentWrapper from '@layouts/content/ContentWrapper'
 import CourseWrapper from '@layouts/content/CourseWrapper'
 import Header from '@layouts/Header'
 import cn from 'classnames'
-import { getSession } from 'next-auth/react'
+import { getSession, signOut } from 'next-auth/react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -153,8 +153,8 @@ export default function Home(props) {
       </CourseWrapper> */}
       <div className="w-full bg-white">
         <div className="fixed top-0 flex flex-col items-center justify-between w-full h-24 shadow-md">
-          <div className="relative flex items-center justify-center w-full h-16 bg-black">
-            <div className="absolute flex justify-center">
+          <div className="relative flex items-start justify-center w-full h-16 bg-black">
+            <div className="absolute flex justify-center mt-2">
               <a>
                 <img
                   className="h-12"
@@ -165,9 +165,9 @@ export default function Home(props) {
                 />
               </a>
             </div>
-            <div className="flex justify-end w-full px-2">
+            <div className="z-10 flex items-start justify-end w-full h-full px-2">
               {user ? (
-                <div>
+                <div className="relative flex flex-col items-end group mt-2.5">
                   <img
                     // onClick={() => closeMenu()}
                     className="border border-opacity-50 rounded-full cursor-pointer border-whiteobject-cover h-11 w-11 min-w-9"
@@ -177,17 +177,35 @@ export default function Home(props) {
                     }
                     alt="Avatar"
                   />
+                  <div className="h-0 overflow-hidden duration-300 scale-0 translate-x-1/2 -translate-y-1/2 group-hover:h-auto group-hover:translate-y-0 group-hover:translate-x-0 group-hover:scale-100 top-12">
+                    <Link href="/courses">
+                      <a>
+                        <div className="px-3 py-2 text-black bg-white border border-gray-300 cursor-pointer whitespace-nowrap hover:bg-gray-500 hover:text-white">
+                          Мои курсы
+                        </div>
+                      </a>
+                    </Link>
+
+                    <div
+                      onClick={signOut}
+                      className="px-3 py-2 text-black bg-white border border-gray-300 cursor-pointer whitespace-nowrap hover:bg-gray-500 hover:text-white"
+                    >
+                      Выйти из учетной записи
+                    </div>
+                  </div>
                 </div>
               ) : (
-                <div>
+                <div className="flex items-center h-full">
                   <Link href="/login">
-                    <a className="hover:text-gray-300">Авторизоваться</a>
+                    <a className="text-white hover:text-gray-300">
+                      Авторизоваться
+                    </a>
                   </Link>
                 </div>
               )}
             </div>
           </div>
-          <ul className="flex items-center justify-center w-full h-8 text-lg duration-300 bg-white gap-x-4 opacity-70 hover:opacity-100">
+          <ul className="flex items-center justify-center w-full h-8 text-lg duration-300 bg-white gap-x-4 opacity-80 hover:opacity-100">
             <MenuItem text="О нас" href="#about" />
             <MenuItem text="Преимущества" href="#benefits" />
             <MenuItem text="Тарифы" href="#tarifs" />
@@ -213,11 +231,13 @@ export default function Home(props) {
             Уроки, задания, проверка заданий и отчетность, все это и многое
             другое
           </H2>
-          <Button
-            className="mt-8"
-            title="Зарегистрироваться и создать свой курс"
-            onClick={() => router.push('./login')}
-          />
+          {!user ?? (
+            <Button
+              className="mt-8"
+              title="Зарегистрироваться и создать свой курс"
+              onClick={() => router.push('./login')}
+            />
+          )}
         </div>
         <BlockContainer id="about" className="bg-white">
           <div className="grid gap-4 tablet:gap-6 laptop:grid-cols-2">

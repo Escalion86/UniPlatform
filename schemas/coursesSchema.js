@@ -1,9 +1,9 @@
 const coursesSchema = {
   title: {
     type: String,
-    required: [true, 'Введите название курса. Давай включи фантазию!'],
+    // required: [true, 'Введите название курса. Давай включи фантазию!'],
     maxlength: [100, 'Название курса не может превышать 100 смволов'],
-    default: '',
+    default: 'Мой новый курс',
   },
   description: {
     type: String,
@@ -11,7 +11,7 @@ const coursesSchema = {
       600,
       'Описание не может превышать 600 символов. Краткость - сестра таланта!',
     ],
-    default: '',
+    default: 'Описание курса',
   },
   image: {
     type: String,

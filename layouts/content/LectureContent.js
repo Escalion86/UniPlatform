@@ -39,8 +39,6 @@ const LectureContent = ({
     setNewLectureState(activeLecture)
   }, [activeLecture, activeChapter])
 
-  const [pause, setPause] = useState(false)
-
   const updateNewCourse = (data) => {
     setNewCourseState({ ...newCourseState, ...data })
   }

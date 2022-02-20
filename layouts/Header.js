@@ -1,4 +1,5 @@
 import Divider from '@components/Divider'
+import { signOut } from 'next-auth/react'
 import Link from 'next/link'
 
 const Header = ({ user, title = '', titleLink = '/' }) => {
@@ -26,16 +27,45 @@ const Header = ({ user, title = '', titleLink = '/' }) => {
         </Link>
       </div>
       {user ? (
-        <div>
-          <img
-            // onClick={() => closeMenu()}
-            className="border border-opacity-50 rounded-full cursor-pointer border-whiteobject-cover h-11 w-11 min-w-9"
-            src={
-              user?.image ??
-              `/img/users/${user?.gender ? user.gender : 'male'}.jpg`
-            }
-            alt="Avatar"
-          />
+        // <div>
+        //   <img
+        //     // onClick={() => closeMenu()}
+        //     className="border border-opacity-50 rounded-full cursor-pointer border-whiteobject-cover h-11 w-11 min-w-9"
+        //     src={
+        //       user?.image ??
+        //       `/img/users/${user?.gender ? user.gender : 'male'}.jpg`
+        //     }
+        //     alt="Avatar"
+        //   />
+        // </div>
+        <div className="z-10 flex items-start justify-end h-full px-2">
+          <div className="relative flex flex-col items-end group mt-2.5">
+            <img
+              // onClick={() => closeMenu()}
+              className="border border-opacity-50 rounded-full cursor-pointer border-whiteobject-cover h-11 w-11 min-w-9"
+              src={
+                user?.image ??
+                `/img/users/${user?.gender ? user.gender : 'male'}.jpg`
+              }
+              alt="Avatar"
+            />
+            <div className="h-0 overflow-hidden duration-300 scale-0 translate-x-1/2 -translate-y-1/2 group-hover:h-auto group-hover:translate-y-0 group-hover:translate-x-0 group-hover:scale-100 top-12">
+              <Link href="/courses">
+                <a>
+                  <div className="px-3 py-2 text-black bg-white border border-gray-300 cursor-pointer whitespace-nowrap hover:bg-gray-500 hover:text-white">
+                    Мои курсы
+                  </div>
+                </a>
+              </Link>
+
+              <div
+                onClick={signOut}
+                className="px-3 py-2 text-black bg-white border border-gray-300 cursor-pointer whitespace-nowrap hover:bg-gray-500 hover:text-white"
+              >
+                Выйти из учетной записи
+              </div>
+            </div>
+          </div>
         </div>
       ) : (
         <div>

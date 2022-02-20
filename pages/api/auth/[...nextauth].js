@@ -6,6 +6,7 @@ import Users from '@models/Users'
 // import Auth0Provider from 'next-auth/providers/auth0'
 import GoogleProvider from 'next-auth/providers/google'
 import { fetchingUserByEmail } from '@helpers/fetchers'
+import CredentialsProvider from 'next-auth/providers/credentials'
 // import VkProvider from 'next-auth/providers/vk'
 // import EmailProvider from 'next-auth/providers/email'
 // import { MongoDBAdapter } from '@next-auth/mongodb-adapter'
@@ -64,6 +65,46 @@ export default async function auth(req, res) {
       //   server: process.env.EMAIL_SERVER,
       //   from: process.env.EMAIL_FROM,
       // }),
+      CredentialsProvider({
+        id: 'credentials', // <- add this line
+        name: 'credentials',
+        credentials: {
+          username: { label: 'EMail', type: 'text', placeholder: '' },
+          password: { label: 'Password', type: 'password' },
+        },
+        authorize: async (credentials) => {
+          // console.log('credentials', credentials)
+          const { username, password } = credentials
+          if (username && password) {
+            return Promise.resolve({
+              name: username,
+              email: 'test@test.ru',
+            })
+          } else {
+            return Promise.resolve(null)
+          }
+        },
+
+        // authorize: async (credentials) => {
+        //   const user = {}
+        //   return Promise.resolve(user)
+        // },
+        // async authorize(credentials, req) {
+        //   // console.log('credentials.username', credentials.username)
+        //   if (
+        //     credentials.username === 'test' &&
+        //     credentials.password === 'test'
+        //   ) {
+        //     return {
+        //       id: 2,
+        //       name: 'Test',
+        //       email: 'test@test.ru',
+        //     }
+        //   }
+
+        //   return null
+        // },
+      }),
       GoogleProvider({
         clientId: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -79,6 +120,7 @@ export default async function auth(req, res) {
     callbacks: {
       async session({ session, token }) {
         const { user } = session
+        console.log('!!!session', session)
         const userEmail = user.email.toLowerCase()
         // const cached = await dbConnect()
         const result = await fetchingUserByEmail(
@@ -150,11 +192,19 @@ export default async function auth(req, res) {
               }
             )
           }
+        } else {
+          // если пользователь не зарегистрирован
         }
         return Promise.resolve(session)
       },
     },
-
+    jwt: {
+      secret: 'test',
+      encryption: true,
+    },
+    pages: {
+      signIn: '/login',
+    },
     // A database is optional, but required to persist accounts in a database
     // database: process.env.MONGODB_URI,
     // adapter: TypeORMLegacyAdapter(process.env.MONGODB_URI)
