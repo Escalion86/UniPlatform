@@ -1,27 +1,28 @@
 const nodemailer = require('nodemailer')
 
-const emailSend = ({ to, from = 'escalion@uniplatform.ru', subject, body }) => {
+const emailSend = (to, subject, html) => {
   return new Promise((res, rej) => {
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      service: process.env.EMAIL_SERVICE,
       auth: {
-        user: from,
-        pass: 'magister',
+        user: process.env.EMAIL_USERNAME,
+        pass: process.env.EMAIL_PASSWORD,
       },
     })
 
     const message = {
-      from,
-      to: '2562020@list.ru',
-      subject: 'Тест',
-      html: `
-    <h3>Wow EMail sended!</h3>`,
+      from: process.env.EMAIL_USERNAME,
+      to,
+      subject,
+      html,
     }
 
     transporter.sendMail(message, (error, info) => {
       if (error) {
-        rej(err)
+        console.log('error', error)
+        rej(error)
       } else {
+        console.log('info', info)
         res(info)
       }
     })

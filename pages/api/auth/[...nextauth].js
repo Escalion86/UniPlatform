@@ -5,8 +5,9 @@ import Users from '@models/Users'
 // import CRUD from '@server/CRUD'
 // import Auth0Provider from 'next-auth/providers/auth0'
 import GoogleProvider from 'next-auth/providers/google'
-import { fetchingUserByEmail } from '@helpers/fetchers'
+import { fetchingUserByEmail, fetchingUsers } from '@helpers/fetchers'
 import CredentialsProvider from 'next-auth/providers/credentials'
+import dbConnect from '@utils/dbConnect'
 // import VkProvider from 'next-auth/providers/vk'
 // import EmailProvider from 'next-auth/providers/email'
 // import { MongoDBAdapter } from '@next-auth/mongodb-adapter'
@@ -73,37 +74,25 @@ export default async function auth(req, res) {
           password: { label: 'Password', type: 'password' },
         },
         authorize: async (credentials) => {
-          // console.log('credentials', credentials)
           const { username, password } = credentials
           if (username && password) {
-            return Promise.resolve({
-              name: username,
-              email: 'test@test.ru',
-            })
+            await dbConnect()
+            const userEmail = username.toLowerCase()
+            const fetchedUser = await Users.find({ email: userEmail, password })
+            console.log('fetchedUser', fetchedUser)
+            if (fetchedUser.length > 0) {
+              console.log('fetchedUser[0].name', fetchedUser[0]?.name)
+              return {
+                name: fetchedUser[0].name,
+                email: fetchedUser[0].email,
+              }
+            } else {
+              return null
+            }
           } else {
-            return Promise.resolve(null)
+            return null
           }
         },
-
-        // authorize: async (credentials) => {
-        //   const user = {}
-        //   return Promise.resolve(user)
-        // },
-        // async authorize(credentials, req) {
-        //   // console.log('credentials.username', credentials.username)
-        //   if (
-        //     credentials.username === 'test' &&
-        //     credentials.password === 'test'
-        //   ) {
-        //     return {
-        //       id: 2,
-        //       name: 'Test',
-        //       email: 'test@test.ru',
-        //     }
-        //   }
-
-        //   return null
-        // },
       }),
       GoogleProvider({
         clientId: process.env.GOOGLE_CLIENT_ID,
@@ -119,9 +108,10 @@ export default async function auth(req, res) {
     ],
     callbacks: {
       async session({ session, token }) {
-        const { user } = session
         console.log('!!!session', session)
-        const userEmail = user.email.toLowerCase()
+        const { user } = session
+        console.log('user', user)
+        const userEmail = user.email?.toLowerCase()
         // const cached = await dbConnect()
         const result = await fetchingUserByEmail(
           userEmail,

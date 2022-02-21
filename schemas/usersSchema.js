@@ -12,6 +12,10 @@ const usersSchema = {
     lowercase: true,
     required: [true, 'Введите EMail'],
   },
+  password: {
+    type: String,
+    default: null,
+  },
   image: {
     type: String,
     default: null,

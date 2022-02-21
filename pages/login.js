@@ -7,6 +7,10 @@ import SvgAvatar from 'svg/SvgAvatar'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faLock, faPassport, faUser } from '@fortawesome/free-solid-svg-icons'
 import cn from 'classnames'
+import emailValidator from '@helpers/emailValidator'
+import SvgEmailConfirm from 'svg/SvgEmailConfirm'
+import SvgMailBox from 'svg/SvgMailBox'
+import { postData } from '@helpers/CRUD'
 
 // import UndrawGraduation from 'public/img/login/undraw_graduation.svg'
 // import Image from 'next/image'
@@ -19,6 +23,7 @@ const Input = ({
   onChange,
   value,
   hidden,
+  error = false,
 }) => {
   const [focused, setFocused] = useState(false)
   const onFocus = () => setFocused(true)
@@ -38,7 +43,11 @@ const Input = ({
         <div
           className={cn(
             'relative w-4 flex justify-center duration-300 items-center mx-auto',
-            focused || value ? 'text-general' : 'text-gray-400'
+            error
+              ? 'text-red-600'
+              : focused || value
+              ? 'text-general'
+              : 'text-gray-400'
           )}
         >
           <FontAwesomeIcon icon={icon} />
@@ -48,7 +57,13 @@ const Input = ({
             className={cn(
               'absolute top-1/2 left-3 -translate-y-1/2 text-lg duration-300',
               { 'text-sm -top-0.5': focused || value },
-              focused || value ? 'text-general' : 'text-gray-400'
+              error
+                ? focused
+                  ? 'text-red-600'
+                  : 'text-red-400'
+                : focused || value
+                ? 'text-general'
+                : 'text-gray-400'
             )}
           >
             {name}
@@ -64,10 +79,16 @@ const Input = ({
         </div>
       </div>
       <div className="relative h-0.5 flex justify-center">
-        <div className="w-full h-full bg-gray-300" />
         <div
           className={cn(
-            'absolute h-full bg-general duration-400',
+            'duration-400 w-full h-full',
+            error ? 'bg-red-400' : 'bg-gray-300'
+          )}
+        />
+        <div
+          className={cn(
+            'absolute h-full duration-400',
+            error ? 'bg-red-600' : 'bg-general',
             focused || value ? 'w-full' : 'w-0'
           )}
         />
@@ -84,18 +105,26 @@ const Login = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [passwordRepeat, setPasswordRepeat] = useState('')
-  const [error, setError] = useState(null)
+  const [errors, setErrors] = useState({})
+  const [needToCheckMail, setNeedToCheckMail] = useState(false)
 
-  console.log('email', email)
-  console.log('password', password)
-  console.log('passwordRepeat', passwordRepeat)
+  const clearErrors = () => {
+    if (Object.keys(errors).length > 0) setErrors({})
+  }
+
+  const updateErrors = (key, error) => {
+    if (errors[key] !== error) setErrors({ ...errors, [key]: error })
+  }
+
+  console.log('errors', errors)
+  console.log('session', session)
 
   useEffect(() => {
     if (!session && status !== 'loading') {
       // signIn('google')
     } else if (status === 'authenticated') {
       if (courseId && lectureId) router.push(`/course/${courseId}/${lectureId}`)
-      else router.push(`/`)
+      else router.push(`/courses`)
     }
   }, [!!session, status])
 
@@ -116,95 +145,168 @@ const Login = () => {
             <h2 className="my-4 text-4xl text-gray-900 uppercase">
               Добро пожаловать
             </h2>
-            <div className="h-8 overflow-hidden text-gray-800">
+            <div className="h-8 overflow-hidden text-2xl text-gray-800">
               <p
-                className={cn('text-xl duration-300', {
+                className={cn('duration-300', {
                   'opacity-0 -mt-8': !isRegistrationProcess,
                 })}
               >
                 Регистрация
               </p>
               <p
-                className={cn('text-xl duration-300', {
+                className={cn('duration-300', {
                   'opacity-0 mt-8': isRegistrationProcess,
                 })}
               >
                 Авторизация
               </p>
             </div>
-            <Input
-              className="mt-0"
-              type="text"
-              name="E-Mail"
-              icon={faUser}
-              onChange={(event) => setEmail(event.target.value)}
-              value={email}
-            />
-            <Input
-              className="mb-2"
-              type="text"
-              name="Пароль"
-              icon={faLock}
-              onChange={(event) => setPassword(event.target.value)}
-              value={password}
-            />
-            <Input
-              className="mb-2"
-              type="text"
-              name="Повтор пароля"
-              icon={faLock}
-              onChange={(event) => setPasswordRepeat(event.target.value)}
-              value={passwordRepeat}
-              hidden={!isRegistrationProcess}
-            />
-            <div className="flex justify-between">
-              <a
-                onClick={() => setIsRegistrationProcess((state) => !state)}
-                className="block text-sm text-right duration-300 cursor-pointer hover:text-general"
-              >
-                {isRegistrationProcess ? 'Авторизация' : 'Регистрация'}
-              </a>
-              <a className="block text-sm text-right duration-300 cursor-pointer hover:text-general">
-                Забыли пароль?
-              </a>
-            </div>
-            <button
-              onClick={(e) => {
-                e.preventDefault()
-                if (isRegistrationProcess && password !== passwordConfirm) {
-                  return setError('Пароли не совпадают')
-                }
-                signIn('credentials', {
-                  redirect: false,
-                  username: email,
-                  password,
-                })
-              }}
-              // style={{
-              //   backgroundImage:
-              //     'linear-gradient(to right, #32be8f, #38d39f, #32be8f)',
-              // }}
-              className="block w-full h-12 mt-4 text-white uppercase duration-300 bg-gray-500 border-0 outline-none hover:bg-general rounded-3xl"
-            >
-              {isRegistrationProcess
-                ? 'Зарегистрироваться'
-                : 'Авторизироваться'}
-            </button>
-            <div className="my-5 text-lg text-gray-700">Или</div>
-            <button
-              onClick={(e) => {
-                e.preventDefault()
-                signIn('google')
-              }}
-              // style={{
-              //   backgroundImage:
-              //     'linear-gradient(to right, #32be8f, #38d39f, #32be8f)',
-              // }}
-              className="flex items-center w-full h-12 px-4 text-lg text-black duration-300 border-2 border-gray-500 outline-none hover:border-general rounded-3xl"
-            >
-              <img src="/img/google.png" />
-              <span className="flex-1">Google</span>
-            </button>
+            {needToCheckMail ? (
+              <div className="flex flex-col items-center mt-6">
+                <SvgMailBox className="w-60" />
+                <p className="mt-4">
+                  Проверьте почту!
+                  <br />
+                  Вам было отправлено письмо для завершения регистрации
+                </p>
+              </div>
+            ) : (
+              <>
+                <Input
+                  className="mt-0"
+                  type="text"
+                  name="E-Mail"
+                  icon={faUser}
+                  onChange={(event) => {
+                    updateErrors('email', null)
+                    setEmail(event.target.value)
+                  }}
+                  value={email}
+                  error={errors.email}
+                />
+                <Input
+                  className="mb-2"
+                  type="password"
+                  name="Пароль"
+                  icon={faLock}
+                  onChange={(event) => {
+                    updateErrors('password', null)
+                    setPassword(event.target.value)
+                  }}
+                  value={password}
+                  error={errors.password}
+                />
+                <Input
+                  className="mb-2"
+                  type="password"
+                  name="Повтор пароля"
+                  icon={faLock}
+                  onChange={(event) => {
+                    updateErrors('password', null)
+                    setPasswordRepeat(event.target.value)
+                  }}
+                  value={passwordRepeat}
+                  hidden={!isRegistrationProcess}
+                  error={errors.password}
+                />
+                <div className="flex justify-between">
+                  <a
+                    onClick={() => {
+                      clearErrors()
+                      setIsRegistrationProcess((state) => !state)
+                    }}
+                    className="block text-sm text-right duration-300 cursor-pointer hover:text-general"
+                  >
+                    {isRegistrationProcess ? 'Авторизация' : 'Регистрация'}
+                  </a>
+                  <a className="block text-sm text-right duration-300 cursor-pointer hover:text-general">
+                    Забыли пароль?
+                  </a>
+                </div>
+                {Object.values(errors).length > 0 && (
+                  <ul className="mt-4 text-left text-red-600">
+                    {Object.values(errors).map((error, index) => (
+                      <li key={'error' + index}>{error}</li>
+                    ))}
+                  </ul>
+                )}
+                <button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    const newErrors = {}
+
+                    if (email === '') {
+                      newErrors.email = 'Укажите Email'
+                    } else if (!emailValidator(email)) {
+                      newErrors.email = 'Email указан не верно'
+                    }
+
+                    if (password === '') {
+                      newErrors.password = 'Введите пароль'
+                    } else if (
+                      isRegistrationProcess &&
+                      password !== passwordRepeat
+                    ) {
+                      newErrors.password = 'Пароли не совпадают'
+                    }
+
+                    if (Object.keys(newErrors).length > 0) {
+                      return setErrors(newErrors)
+                    } else {
+                      clearErrors()
+                    }
+
+                    if (isRegistrationProcess) {
+                      // Если это регистрация
+                      setNeedToCheckMail(true)
+                      postData(
+                        `/api/emailconfirm`,
+                        { email, password }
+                        // (newEmailConfirmation) => {
+                        //   setNeedToCheckMail(true)
+                        // }
+                      )
+                    } else {
+                      // Если это авторизация
+                      signIn('credentials', {
+                        redirect: false,
+                        username: email.toLowerCase(),
+                        password,
+                      }).then((res) => {
+                        if (res.error === 'CredentialsSignin') {
+                          setPassword('')
+                          setErrors({ password: 'Логин или пароль не верны' })
+                        }
+                      })
+                    }
+                  }}
+                  // style={{
+                  //   backgroundImage:
+                  //     'linear-gradient(to right, #32be8f, #38d39f, #32be8f)',
+                  // }}
+                  className="block w-full h-12 mt-4 text-white uppercase duration-300 bg-gray-500 border-0 outline-none hover:bg-general rounded-3xl"
+                >
+                  {isRegistrationProcess
+                    ? 'Зарегистрироваться'
+                    : 'Авторизироваться'}
+                </button>
+                <div className="my-5 text-lg text-gray-700">Или</div>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    signIn('google')
+                  }}
+                  // style={{
+                  //   backgroundImage:
+                  //     'linear-gradient(to right, #32be8f, #38d39f, #32be8f)',
+                  // }}
+                  className="flex items-center w-full h-12 px-4 text-lg text-black duration-300 bg-white border-2 border-gray-500 outline-none hover:border-general rounded-3xl"
+                >
+                  <img src="/img/google.png" />
+                  <span className="flex-1">Google</span>
+                </button>
+              </>
+            )}
           </form>
         </div>
       </div>

@@ -1,7 +1,6 @@
 const SvgLogin = ({ color = '#9563ff', className }) => (
   <svg
     id="ae7ad495-543d-4c4b-9483-8059c5566fe6"
-    data-name="Layer 1"
     xmlns="http://www.w3.org/2000/svg"
     xmlnsXlink="http://www.w3.org/1999/xlink"
     viewBox="0 0 1009.54 839.64"

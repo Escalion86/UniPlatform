@@ -153,58 +153,7 @@ export default function Home(props) {
       </CourseWrapper> */}
       <div className="w-full bg-white">
         <div className="fixed top-0 flex flex-col items-center justify-between w-full h-24 shadow-md">
-          <div className="relative flex items-start justify-center w-full h-16 bg-black">
-            <div className="absolute flex justify-center mt-2">
-              <a>
-                <img
-                  className="h-12"
-                  src="/img/UniPlatform2.png"
-                  alt="balloon"
-                  // width={40}
-                  // height={40}
-                />
-              </a>
-            </div>
-            <div className="z-10 flex items-start justify-end w-full h-full px-2">
-              {user ? (
-                <div className="relative flex flex-col items-end group mt-2.5">
-                  <img
-                    // onClick={() => closeMenu()}
-                    className="border border-opacity-50 rounded-full cursor-pointer border-whiteobject-cover h-11 w-11 min-w-9"
-                    src={
-                      user?.image ??
-                      `/img/users/${user?.gender ? user.gender : 'male'}.jpg`
-                    }
-                    alt="Avatar"
-                  />
-                  <div className="h-0 overflow-hidden duration-300 scale-0 translate-x-1/2 -translate-y-1/2 group-hover:h-auto group-hover:translate-y-0 group-hover:translate-x-0 group-hover:scale-100 top-12">
-                    <Link href="/courses">
-                      <a>
-                        <div className="px-3 py-2 text-black bg-white border border-gray-300 cursor-pointer whitespace-nowrap hover:bg-gray-500 hover:text-white">
-                          Мои курсы
-                        </div>
-                      </a>
-                    </Link>
-
-                    <div
-                      onClick={signOut}
-                      className="px-3 py-2 text-black bg-white border border-gray-300 cursor-pointer whitespace-nowrap hover:bg-gray-500 hover:text-white"
-                    >
-                      Выйти из учетной записи
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center h-full">
-                  <Link href="/login">
-                    <a className="text-white hover:text-gray-300">
-                      Авторизоваться
-                    </a>
-                  </Link>
-                </div>
-              )}
-            </div>
-          </div>
+          <Header user={user} />
           <ul className="flex items-center justify-center w-full h-8 text-lg duration-300 bg-white gap-x-4 opacity-80 hover:opacity-100">
             <MenuItem text="О нас" href="#about" />
             <MenuItem text="Преимущества" href="#benefits" />
@@ -281,14 +230,14 @@ export default function Home(props) {
             <CardBenefits icon={faSmile} title="Создание курсов - это Легко">
               <div className="flex flex-col items-start w-full">
                 <P>Структура максимально проста:</P>
-                <P>
+                <div className="text-lg laptop:text-xl">
                   <ul className="list-decimal">
                     <li>Создаете описание курса</li>
                     <li>Добавляем лекции</li>
                     <li>По необходимости добавляем задания</li>
                     <li>ГОТОВО!</li>
                   </ul>
-                </P>
+                </div>
               </div>
             </CardBenefits>
             <CardBenefits icon={faThumbsUp} title="Доступность">
