@@ -11,6 +11,9 @@ import emailValidator from '@helpers/emailValidator'
 import SvgEmailConfirm from 'svg/SvgEmailConfirm'
 import SvgMailBox from 'svg/SvgMailBox'
 import { postData } from '@helpers/CRUD'
+import resolveConfig from 'tailwindcss/resolveConfig'
+import tailwindConfig from 'tailwind.config.js'
+import passwordValidator from '@helpers/passwordValidator'
 
 // import UndrawGraduation from 'public/img/login/undraw_graduation.svg'
 // import Image from 'next/image'
@@ -97,6 +100,9 @@ const Input = ({
   )
 }
 
+const fullConfig = resolveConfig(tailwindConfig)
+const generalColor = fullConfig.theme.colors.general
+
 const Login = () => {
   const router = useRouter()
   const { data: session, status } = useSession()
@@ -128,19 +134,24 @@ const Login = () => {
     }
   }, [!!session, status])
 
+  console.log('generalColor', generalColor)
+
   return (
     <div className="box-border w-screen h-screen overflow-hidden">
       {/* <Wave /> */}
       {/* <Image src="/public/img/login/wave.svg" width={174} height={84} /> */}
-      <SvgWave className="fixed top-0 left-0 hidden w-auto h-full laptop:block -z-10" />
+      <SvgWave
+        color={generalColor}
+        className="fixed top-0 left-0 hidden w-auto h-full laptop:block -z-10"
+      />
       <div className="grid w-full h-full grid-cols-1 px-2 bg-transparent laptop:grid-cols-2 gap-7">
         <div className="items-center hidden text-center laptop:flex">
-          <SvgLogin className="w-124" />
+          <SvgLogin color={generalColor} className="w-124" />
         </div>
         <div className="flex items-center justify-center text-center laptop:justify-start">
           <form className="w-90">
             <div className="flex justify-center w-full">
-              <SvgAvatar className="w-24" />
+              <SvgAvatar color={generalColor} className="w-24" />
             </div>
             <h2 className="my-4 text-4xl text-gray-900 uppercase">
               Добро пожаловать
@@ -163,7 +174,7 @@ const Login = () => {
             </div>
             {needToCheckMail ? (
               <div className="flex flex-col items-center mt-6">
-                <SvgMailBox className="w-60" />
+                <SvgMailBox color={generalColor} className="w-60" />
                 <p className="mt-4">
                   Проверьте почту!
                   <br />
@@ -224,10 +235,11 @@ const Login = () => {
                   </a>
                 </div>
                 {Object.values(errors).length > 0 && (
-                  <ul className="mt-4 text-left text-red-600">
-                    {Object.values(errors).map((error, index) => (
-                      <li key={'error' + index}>{error}</li>
-                    ))}
+                  <ul className="mt-4 ml-5 text-left text-red-600 list-disc">
+                    {Object.values(errors).map(
+                      (error, index) =>
+                        error && <li key={'error' + index}>{error}</li>
+                    )}
                   </ul>
                 )}
                 <button
@@ -243,11 +255,13 @@ const Login = () => {
 
                     if (password === '') {
                       newErrors.password = 'Введите пароль'
-                    } else if (
-                      isRegistrationProcess &&
-                      password !== passwordRepeat
-                    ) {
-                      newErrors.password = 'Пароли не совпадают'
+                    } else if (isRegistrationProcess) {
+                      if (!passwordValidator(password)) {
+                        newErrors.password =
+                          'Пароль должен содержать строчные и заглавные буквы, а также минимум одну цифру'
+                      } else if (password !== passwordRepeat) {
+                        newErrors.password = 'Пароли не совпадают'
+                      }
                     }
 
                     if (Object.keys(newErrors).length > 0) {
@@ -258,13 +272,23 @@ const Login = () => {
 
                     if (isRegistrationProcess) {
                       // Если это регистрация
-                      setNeedToCheckMail(true)
                       postData(
                         `/api/emailconfirm`,
-                        { email, password }
-                        // (newEmailConfirmation) => {
-                        //   setNeedToCheckMail(true)
-                        // }
+                        { email, password },
+                        (res) => {
+                          if (res.error === 'User already registered') {
+                            console.log('!!!')
+                            setErrors({
+                              email:
+                                'Пользователь с таким Email уже зарегистрирован',
+                            })
+                            setPassword('')
+                            setPasswordRepeat('')
+                          } else {
+                            console.log('!!!!!!!')
+                            setNeedToCheckMail(true)
+                          }
+                        }
                       )
                     } else {
                       // Если это авторизация
@@ -300,9 +324,12 @@ const Login = () => {
                   //   backgroundImage:
                   //     'linear-gradient(to right, #32be8f, #38d39f, #32be8f)',
                   // }}
-                  className="flex items-center w-full h-12 px-4 text-lg text-black duration-300 bg-white border-2 border-gray-500 outline-none hover:border-general rounded-3xl"
+                  className="flex items-center w-full h-12 px-4 text-lg text-black duration-300 bg-white border-2 border-gray-500 outline-none group hover:border-general rounded-3xl"
                 >
-                  <img src="/img/google.png" />
+                  <img
+                    className="group-hover:animate-spin"
+                    src="/img/google.png"
+                  />
                   <span className="flex-1">Google</span>
                 </button>
               </>
