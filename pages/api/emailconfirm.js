@@ -38,7 +38,7 @@ export default async function handler(req, res) {
       // Отправляем письмо
       const urlToConfirm = `${process.env.NEXTAUTH_SITE}/emailconfirm?email=${newEmailConfirmation.email}&token=${newEmailConfirmation.token}`
       const domenName = new URL(process.env.NEXTAUTH_SITE).hostname
-      const emailRes = emailSend(
+      const emailRes = await emailSend(
         newEmailConfirmation.email,
         `Подтверждение регистрации на ${domenName}`,
         `
