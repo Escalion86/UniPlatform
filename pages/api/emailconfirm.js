@@ -29,24 +29,24 @@ export default async function handler(req, res) {
         token: uuid(),
       })
       if (!newEmailConfirmation) {
-        return res
-          ?.status(400)
-          .json({
-            success: false,
-            data: { error: `Can't create emailConfirmation` },
-          })
+        return res?.status(400).json({
+          success: false,
+          data: { error: `Can't create emailConfirmation` },
+        })
       }
 
       // Отправляем письмо
       const urlToConfirm = `${process.env.NEXTAUTH_SITE}/emailconfirm?email=${newEmailConfirmation.email}&token=${newEmailConfirmation.token}`
       const domenName = new URL(process.env.NEXTAUTH_SITE).hostname
-      emailSend(
+      const emailRes = emailSend(
         newEmailConfirmation.email,
         `Подтверждение регистрации на ${domenName}`,
         `
         <h3><a href="${urlToConfirm}">Кликните по мне для завершения регистрации на ${domenName}</a></h3>
       `
       )
+
+      console.log('emailRes', emailRes)
 
       return res
         ?.status(201)
