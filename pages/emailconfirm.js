@@ -60,7 +60,9 @@ const EmailConfirm = ({ user, error, success }) => {
 export default EmailConfirm
 
 export const getServerSideProps = async (context) => {
+  console.log('context.query', context.query)
   const { email, token } = context.query
+
   if (!email || !token) {
     return {
       props: {
@@ -71,7 +73,7 @@ export const getServerSideProps = async (context) => {
       },
     }
   }
-
+  console.log('Start find EmailConfirmation')
   const data = await EmailConfirmations.findOne({ email, token })
   console.log('EmailConfirmations data', data)
   if (!data) {
