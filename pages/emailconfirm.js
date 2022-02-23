@@ -17,7 +17,7 @@ const EmailConfirm = ({ user, error, success }) => {
   console.log('error', error)
   console.log('success', success)
 
-  const { email, token } = router.query
+  // const { email, token } = router.query
   const [counter, setCounter] = useState(5)
 
   useEffect(() => {
@@ -65,7 +65,7 @@ export const getServerSideProps = async (context) => {
     return {
       props: {
         user: {
-          email: context.query.email,
+          email,
         },
         error: 'Неверная ссылка',
       },
@@ -73,11 +73,12 @@ export const getServerSideProps = async (context) => {
   }
 
   const data = await EmailConfirmations.findOne({ email, token })
+  console.log('EmailConfirmations data', data)
   if (!data) {
     return {
       props: {
         user: {
-          email: context.query.email,
+          email,
         },
         error: 'Ссылка устарела или не верна',
       },
@@ -87,11 +88,13 @@ export const getServerSideProps = async (context) => {
   // Сначала проверяем, может такой пользователь уже существует
   const existingUser = await Users.findOne({ email })
 
+  console.log('existingUser data', existingUser)
+
   if (existingUser)
     return {
       props: {
         user: {
-          email: context.query.email,
+          email,
         },
         error: 'Ошибка! Пользователь с таким email уже авторизован',
       },
@@ -103,11 +106,13 @@ export const getServerSideProps = async (context) => {
     name: '',
   })
 
+  console.log('newUser data', newUser)
+
   if (!newUser)
     return {
       props: {
         user: {
-          email: context.query.email,
+          email,
         },
         error:
           'Ошибка создания пользователя. Пожалуйста обратитесь к администратору',
@@ -116,6 +121,8 @@ export const getServerSideProps = async (context) => {
 
   // Теперь удаляем токен
   await EmailConfirmations.deleteOne({ email, token })
+
+  console.log('! ! !')
 
   return {
     props: {
