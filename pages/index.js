@@ -1,5 +1,6 @@
 // import dbConnect from '@utils/dbConnect'
 
+import { H1, H2, H3, H4, P } from '@components/tags'
 import { faSmile, faThumbsUp } from '@fortawesome/free-regular-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { fetchingCourses } from '@helpers/fetchers'
@@ -11,29 +12,6 @@ import { getSession, signOut } from 'next-auth/react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-
-// import csv from '../tilda.csv'
-
-// const csvToJsonFunc = () => {
-//   csv()
-// // .fromFile(csvFilePath)
-// .fromStream(request.get('https://store.tilda.cc/store/export/?task=922544378201'))
-// .then((jsonObj)=>{
-//     console.log(jsonObj);
-//     /**
-//      * [
-//      * 	{a:"1", b:"2", c:"3"},
-//      * 	{a:"4", b:"5". c:"6"}
-//      * ]
-//      */
-// })
-//   // const json = csvToJson.formatValueByType().getJsonFromCsv('tilda.csv')
-//   // console.log(`json`, js`on)
-// }
-
-const CourseCard = ({ course }) => {
-  return <div className=""></div>
-}
 
 const MenuItem = ({ text, href = '#' }) => (
   <li>
@@ -55,48 +33,6 @@ const BlockContainer = ({ id, className, children }) => (
     {id && <Section id={id} />}
     {children}
   </div>
-)
-
-const H1 = ({ className, style, children }) => (
-  <h1
-    className={cn('text-4xl font-bold text-center tablet:text-5xl', className)}
-    style={style}
-  >
-    {children}
-  </h1>
-)
-
-const H2 = ({ className, style, children }) => (
-  <h2
-    className={cn('text-xl font-bold text-center tablet:text-2xl', className)}
-    style={style}
-  >
-    {children}
-  </h2>
-)
-
-const H3 = ({ className, style, children }) => (
-  <h3
-    className={cn('text-3xl font-bold text-center tablet:text-4xl', className)}
-    style={style}
-  >
-    {children}
-  </h3>
-)
-
-const H4 = ({ className, style, children }) => (
-  <h4
-    className={cn('text-2xl font-bold text-center tablet:text-3xl', className)}
-    style={style}
-  >
-    {children}
-  </h4>
-)
-
-const P = ({ className, style, children }) => (
-  <p className={cn('text-lg laptop:text-xl', className)} style={style}>
-    {children}
-  </p>
 )
 
 const CardBenefits = ({ icon, title, children }) => (

@@ -337,17 +337,6 @@ const Login = () => {
           </form>
         </div>
       </div>
-      {/* <div className="grid w-full h-full grid-cols-2 px-2 bg-transparent gap-7">
-        <div style={{ fill: 'red' }}> */}
-      {/* <img
-            src="/img/login/undraw_graduation.svg"
-            className="bg-transparent"
-          /> */}
-      {/* <UndrawGraduation /> */}
-      {/* </div>
-      </div> */}
-
-      {/* <div>{status === 'authenticated' ? 'Авторизован' : 'Не авторизован'}</div> */}
     </div>
   )
 }

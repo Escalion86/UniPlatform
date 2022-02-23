@@ -9,6 +9,8 @@ import { deleteImage, sendVideo } from '@helpers/cloudinary'
 import LoadingSpinner from '@components/LoadingSpinner'
 // import { Transformation, Video } from 'cloudinary-react'
 import VideoPlayer from '@components/VideoPlayer'
+import fileSizeValidator from '@helpers/fileSizeValidator'
+import EditableTextarea from '@components/EditableTextarea'
 
 const LectureContent = ({
   course,
@@ -55,16 +57,6 @@ const LectureContent = ({
     description.current = evt.target.value
   }
 
-  const handleBlur = () => {
-    console.log(description.current)
-  }
-
-  const saveContent = async () => {
-    await putData(`/api/chapters/${newChapterState._id}`, newChapterState)
-    await putData(`/api/lectures/${newLectureState._id}`, newLectureState)
-    refreshPage()
-  }
-
   const saveChapter = async (params) => {
     await putData(`/api/chapters/${newChapterState._id}`, params)
     refreshPage()
@@ -99,22 +91,26 @@ const LectureContent = ({
 
   const onChangeFile = async (newFile) => {
     if (newFile) {
-      setIsVideoSending(true)
-      await deleteVideo()
-      sendVideo(
-        newFile,
-        (videoUrl) => {
-          if (isOpenedCourse) {
-            saveCourse({ videoUrl })
-          } else {
-            saveLecture({ videoUrl })
-          }
-          setIsVideoSending(false)
-          // refreshPage()
-        },
-        activeLecture ? 'lectures' : 'courses',
-        `${activeLecture ? activeLecture._id : course._id}/video`
-      )
+      if (fileSizeValidator(newFile)) {
+        setIsVideoSending(true)
+        await deleteVideo()
+        sendVideo(
+          newFile,
+          (videoUrl) => {
+            if (isOpenedCourse) {
+              saveCourse({ videoUrl })
+            } else {
+              saveLecture({ videoUrl })
+            }
+            setIsVideoSending(false)
+            // refreshPage()
+          },
+          activeLecture ? 'lectures' : 'courses',
+          `${activeLecture ? activeLecture._id : course._id}/video`
+        )
+      } else {
+        alert('Файл не может превышать 100Мб')
+      }
     }
   }
 
@@ -217,57 +213,7 @@ const LectureContent = ({
             videoUrl ? 'aspect-w-16 aspect-h-9' : 'h-0'
           )}
         >
-          {videoUrl && (
-            <VideoPlayer src={videoUrl} />
-            // <video
-            //   controlsList="nodownload noremoteplayback"
-            //   controls
-            //   // publicId={`obnimisharik_courses_dev/${
-            //   //   isOpenedCourse
-            //   //     ? `courses/${course._id}`
-            //   //     : `lectures/${activeLecture._id}`
-            //   // }/video`}
-            //   // width="400"
-            // >
-            //   <source
-            //     src={
-            //       isOpenedCourse ? course?.videoUrl : activeLecture?.videoUrl
-            //     }
-            //     // type="video/mp4"
-            //   />
-            // </video>
-            // <ReactPlayer
-            //   width="100%"
-            //   height="100%"
-            //   url={
-            //     (isOpenedCourse ? course.videoUrl : activeLecture.videoUrl) +
-            //     '?modestbranding=1&;showinfo=0&;autohide=1&;rel=0'
-            //   }
-            //   playing={!pause}
-            //   config={{
-            //     youtube: {
-            //       playerVars: {
-            //         controls: 0,
-            //         autoplay: 0,
-            //         modestbranding: 1,
-            //         rel: 0,
-            //         disablekb: 1,
-            //         showinfo: 0,
-            //         iv_load_policy: 3,
-            //         fs: 0,
-            //         cc_load_policy: 0,
-            //       },
-            //     },
-            //     vimeo: {
-            //       autoplay: true,
-            //     },
-            //     // facebook: {
-            //     //   appId: '12345',
-            //     // },
-            //   }}
-            //   onDuration={(duration) => console.log('duration', duration)}
-            // />
-          )}
+          {videoUrl && <VideoPlayer src={videoUrl} />}
         </div>
       </div>
       <div className="flex flex-col px-2 tablet:px-12 desktop:w-5/6 laptop:px-20">
@@ -289,7 +235,7 @@ const LectureContent = ({
                 <LoadingSpinner size="xs" />
               </div>
             ) : (
-              <div className="flex gap-x-2">
+              <div className="flex items-center gap-x-2">
                 <button
                   className="px-2 py-1 bg-gray-200 border border-gray-400 hover:bg-gray-400"
                   onClick={selectVideoClick}
@@ -304,6 +250,9 @@ const LectureContent = ({
                     Удалить видео
                   </button>
                 )}
+                <div className="text-sm text-gray-500">
+                  Видео не может превышать 100Мб
+                </div>
               </div>
             )}
           </div>
@@ -410,7 +359,7 @@ const LectureContent = ({
         <Divider light />
         {/* <div className="text-base">{activeLecture.description}</div> */}
         {editMode ? (
-          <ContentEditable
+          <EditableTextarea
             className="border-b border-purple-600 outline-none"
             // innerRef={this.contentEditable}
             html={

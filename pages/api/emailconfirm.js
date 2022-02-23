@@ -13,9 +13,7 @@ export default async function handler(req, res) {
       const { email, password } = body
       // Сначала проверяем есть ли такой пользователь уже
       const existingUser = await Users.findOne({ email })
-      console.log('existingUser', existingUser)
       if (existingUser) {
-        console.log('!')
         return res
           ?.status(200)
           .json({ success: false, data: { error: 'User already registered' } })
@@ -55,7 +53,6 @@ export default async function handler(req, res) {
   }
 
   if (method === 'GET') {
-    console.log('query', query)
     const { email, token } = query
     if (!email)
       return res
