@@ -122,9 +122,6 @@ const Login = () => {
     if (errors[key] !== error) setErrors({ ...errors, [key]: error })
   }
 
-  console.log('errors', errors)
-  console.log('session', session)
-
   useEffect(() => {
     if (!session && status !== 'loading') {
       // signIn('google')
@@ -133,8 +130,6 @@ const Login = () => {
       else router.push(`/courses`)
     }
   }, [!!session, status])
-
-  console.log('generalColor', generalColor)
 
   return (
     <div className="box-border w-screen h-screen overflow-hidden">
@@ -284,8 +279,11 @@ const Login = () => {
                             })
                             setPassword('')
                             setPasswordRepeat('')
+                          } else if (res.error) {
+                            setErrors({
+                              email: res.error,
+                            })
                           } else {
-                            console.log('!!!!!!!')
                             setNeedToCheckMail(true)
                           }
                         }
