@@ -10,6 +10,7 @@ import cn from 'classnames'
 import EmailConfirmations from '@models/EmailConfirmations'
 import Users from '@models/Users'
 import Link from 'next/link'
+import dbConnect from '@utils/dbConnect'
 
 const EmailConfirm = ({ user, error, success }) => {
   const router = useRouter()
@@ -74,6 +75,7 @@ export const getServerSideProps = async (context) => {
     }
   }
   console.log('Start find EmailConfirmation')
+  await dbConnect()
   const data = await EmailConfirmations.findOne({ email, token })
   console.log('EmailConfirmations data', data)
   if (!data) {
