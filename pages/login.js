@@ -27,6 +27,7 @@ const Input = ({
   value,
   hidden,
   error = false,
+  tabIndex,
 }) => {
   const [focused, setFocused] = useState(false)
   const onFocus = () => setFocused(true)
@@ -35,7 +36,7 @@ const Input = ({
   return (
     <div
       className={cn(
-        'my-3 py-3 duration-300 overflow-hidden max-h-15',
+        'my-2 py-3 duration-300 overflow-hidden max-h-15',
         className,
         {
           'max-h-0 my-0 py-0': hidden,
@@ -55,7 +56,7 @@ const Input = ({
         >
           <FontAwesomeIcon icon={icon} />
         </div>
-        <div className="relative h-11">
+        <div className="relative h-10">
           <h5
             className={cn(
               'absolute top-1/2 left-3 -translate-y-1/2 text-lg duration-300',
@@ -78,6 +79,7 @@ const Input = ({
             onBlur={onBlur}
             value={value}
             onChange={onChange}
+            tabIndex={tabIndex}
           />
         </div>
       </div>
@@ -113,6 +115,65 @@ const Login = () => {
   const [passwordRepeat, setPasswordRepeat] = useState('')
   const [errors, setErrors] = useState({})
   const [needToCheckMail, setNeedToCheckMail] = useState(false)
+
+  const submit = () => {
+    const newErrors = {}
+
+    if (email === '') {
+      newErrors.email = 'Укажите Email'
+    } else if (!emailValidator(email)) {
+      newErrors.email = 'Email указан не верно'
+    }
+
+    if (password === '') {
+      newErrors.password = 'Введите пароль'
+    } else if (isRegistrationProcess) {
+      if (!passwordValidator(password)) {
+        newErrors.password =
+          'Пароль должен содержать строчные и заглавные буквы, а также минимум одну цифру'
+      } else if (password !== passwordRepeat) {
+        newErrors.password = 'Пароли не совпадают'
+      }
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      return setErrors(newErrors)
+    } else {
+      clearErrors()
+    }
+
+    if (isRegistrationProcess) {
+      // Если это регистрация
+      postData(`/api/emailconfirm`, { email, password }, (res) => {
+        if (res.error === 'User already registered') {
+          console.log('!!!')
+          setErrors({
+            email: 'Пользователь с таким Email уже зарегистрирован',
+          })
+          setPassword('')
+          setPasswordRepeat('')
+        } else if (res.error) {
+          setErrors({
+            email: res.error,
+          })
+        } else {
+          setNeedToCheckMail(true)
+        }
+      })
+    } else {
+      // Если это авторизация
+      signIn('credentials', {
+        redirect: false,
+        username: email.toLowerCase(),
+        password,
+      }).then((res) => {
+        if (res.error === 'CredentialsSignin') {
+          setPassword('')
+          setErrors({ password: 'Логин или пароль не верны' })
+        }
+      })
+    }
+  }
 
   const clearErrors = () => {
     if (Object.keys(errors).length > 0) setErrors({})
@@ -191,7 +252,6 @@ const Login = () => {
                   error={errors.email}
                 />
                 <Input
-                  className="mb-2"
                   type="password"
                   name="Пароль"
                   icon={faLock}
@@ -203,7 +263,6 @@ const Login = () => {
                   error={errors.password}
                 />
                 <Input
-                  className="mb-2"
                   type="password"
                   name="Повтор пароля"
                   icon={faLock}
@@ -214,9 +273,11 @@ const Login = () => {
                   value={passwordRepeat}
                   hidden={!isRegistrationProcess}
                   error={errors.password}
+                  tabIndex={isRegistrationProcess ? 0 : -1}
                 />
                 <div className="flex justify-between">
                   <a
+                    tabIndex={0}
                     onClick={() => {
                       clearErrors()
                       setIsRegistrationProcess((state) => !state)
@@ -225,7 +286,10 @@ const Login = () => {
                   >
                     {isRegistrationProcess ? 'Авторизация' : 'Регистрация'}
                   </a>
-                  <a className="block text-sm text-right duration-300 cursor-pointer hover:text-general">
+                  <a
+                    tabIndex={0}
+                    className="block text-sm text-right duration-300 cursor-pointer hover:text-general"
+                  >
                     Забыли пароль?
                   </a>
                 </div>
@@ -240,73 +304,16 @@ const Login = () => {
                 <button
                   onClick={(e) => {
                     e.preventDefault()
-                    const newErrors = {}
-
-                    if (email === '') {
-                      newErrors.email = 'Укажите Email'
-                    } else if (!emailValidator(email)) {
-                      newErrors.email = 'Email указан не верно'
-                    }
-
-                    if (password === '') {
-                      newErrors.password = 'Введите пароль'
-                    } else if (isRegistrationProcess) {
-                      if (!passwordValidator(password)) {
-                        newErrors.password =
-                          'Пароль должен содержать строчные и заглавные буквы, а также минимум одну цифру'
-                      } else if (password !== passwordRepeat) {
-                        newErrors.password = 'Пароли не совпадают'
-                      }
-                    }
-
-                    if (Object.keys(newErrors).length > 0) {
-                      return setErrors(newErrors)
-                    } else {
-                      clearErrors()
-                    }
-
-                    if (isRegistrationProcess) {
-                      // Если это регистрация
-                      postData(
-                        `/api/emailconfirm`,
-                        { email, password },
-                        (res) => {
-                          if (res.error === 'User already registered') {
-                            console.log('!!!')
-                            setErrors({
-                              email:
-                                'Пользователь с таким Email уже зарегистрирован',
-                            })
-                            setPassword('')
-                            setPasswordRepeat('')
-                          } else if (res.error) {
-                            setErrors({
-                              email: res.error,
-                            })
-                          } else {
-                            setNeedToCheckMail(true)
-                          }
-                        }
-                      )
-                    } else {
-                      // Если это авторизация
-                      signIn('credentials', {
-                        redirect: false,
-                        username: email.toLowerCase(),
-                        password,
-                      }).then((res) => {
-                        if (res.error === 'CredentialsSignin') {
-                          setPassword('')
-                          setErrors({ password: 'Логин или пароль не верны' })
-                        }
-                      })
-                    }
+                    submit()
                   }}
                   // style={{
                   //   backgroundImage:
                   //     'linear-gradient(to right, #32be8f, #38d39f, #32be8f)',
                   // }}
-                  className="block w-full h-12 mt-4 text-white uppercase duration-300 bg-gray-500 border-0 outline-none hover:bg-general rounded-3xl"
+                  className={
+                    'focus:bg-general focus:border-2 focus:border-black block w-full h-12 mt-4 text-white uppercase duration-300 bg-gray-500 border-0 outline-none hover:bg-general rounded-3xl'
+                  }
+                  tabIndex={0}
                 >
                   {isRegistrationProcess
                     ? 'Зарегистрироваться'
@@ -322,7 +329,7 @@ const Login = () => {
                   //   backgroundImage:
                   //     'linear-gradient(to right, #32be8f, #38d39f, #32be8f)',
                   // }}
-                  className="flex items-center w-full h-12 px-4 text-lg text-black duration-300 bg-white border-2 border-gray-500 outline-none group hover:border-general rounded-3xl"
+                  className="flex items-center w-full h-12 px-4 text-lg text-black duration-300 bg-white border-2 border-gray-500 outline-none focus:border-general group hover:border-general rounded-3xl"
                 >
                   <img
                     className="group-hover:animate-spin"
