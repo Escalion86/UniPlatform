@@ -52,7 +52,17 @@ function CabinetPage(props) {
         {/* ----------------------------- HEADER ------------------------------- */}
         <Header user={user} title="Кабинет" titleLink={`/cabinet`} />
         <ContentWrapper>
-          <H2>Курсы</H2>
+          <H2>Доступные курсы</H2>
+          <ul className="w-full px-2">
+            {courses.map((course) => (
+              <li key={course._id} className="w-full my-1 hover:bg-gray-200">
+                <Link href={`/course/${course._id}`}>
+                  <a>{course.title}</a>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <H2>Мои курсы</H2>
           <ul className="w-full px-2">
             {courses.map((course) => (
               <li key={course._id} className="w-full my-1 hover:bg-gray-200">
@@ -126,7 +136,7 @@ export const getServerSideProps = async (context) => {
   }
 
   try {
-    const courses = await fetchingCourses(null, process.env.NEXTAUTH_SITE)
+    const courses = await fetchingCourses(process.env.NEXTAUTH_SITE)
     return {
       props: {
         courses,

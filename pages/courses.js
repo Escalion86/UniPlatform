@@ -120,7 +120,7 @@ export const getServerSideProps = async (context) => {
   }
 
   try {
-    const courses = await fetchingCourses(null, process.env.NEXTAUTH_SITE)
+    const courses = await fetchingCourses(process.env.NEXTAUTH_SITE)
     return {
       props: {
         courses,

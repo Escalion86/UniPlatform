@@ -14,11 +14,7 @@ import dbConnect from '@utils/dbConnect'
 
 const EmailConfirm = ({ user, error, success }) => {
   const router = useRouter()
-  console.log('user', user)
-  console.log('error', error)
-  console.log('success', success)
 
-  // const { email, token } = router.query
   const [counter, setCounter] = useState(5)
 
   useEffect(() => {
@@ -61,7 +57,6 @@ const EmailConfirm = ({ user, error, success }) => {
 export default EmailConfirm
 
 export const getServerSideProps = async (context) => {
-  console.log('context.query', context.query)
   const { email, token } = context.query
 
   if (!email || !token) {
@@ -74,10 +69,10 @@ export const getServerSideProps = async (context) => {
       },
     }
   }
-  console.log('Start find EmailConfirmation')
   await dbConnect()
+
+  // Сначала проверяем наличие запроса на регистрацию и верность токена
   const data = await EmailConfirmations.findOne({ email, token })
-  console.log('EmailConfirmations data', data)
   if (!data) {
     return {
       props: {
@@ -89,10 +84,8 @@ export const getServerSideProps = async (context) => {
     }
   }
 
-  // Сначала проверяем, может такой пользователь уже существует
+  // Теперь проверяем, может такой пользователь уже существует
   const existingUser = await Users.findOne({ email })
-
-  console.log('existingUser data', existingUser)
 
   if (existingUser)
     return {
@@ -104,13 +97,12 @@ export const getServerSideProps = async (context) => {
       },
     }
 
+  // Создаем пользователя
   const newUser = await Users.create({
     email,
     password: data.password,
     name: '',
   })
-
-  console.log('newUser data', newUser)
 
   if (!newUser)
     return {
@@ -125,8 +117,6 @@ export const getServerSideProps = async (context) => {
 
   // Теперь удаляем токен
   await EmailConfirmations.deleteOne({ email, token })
-
-  console.log('! ! !')
 
   return {
     props: {

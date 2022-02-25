@@ -188,7 +188,7 @@ const Login = () => {
       // signIn('google')
     } else if (status === 'authenticated') {
       if (courseId && lectureId) router.push(`/course/${courseId}/${lectureId}`)
-      else router.push(`/courses`)
+      else router.push(`/cabinet`)
     }
   }, [!!session, status])
 

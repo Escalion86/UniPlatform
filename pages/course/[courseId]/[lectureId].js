@@ -178,10 +178,8 @@ export const getServerSideProps = async (context) => {
       notFound: true,
     }
   }
-  // console.log('!session', session)
 
   if (!session) {
-    // console.log('session params', params)
     return {
       redirect: {
         destination: `/login?CourseId=${params.courseId}&LectureId=${params.lectureId}`,
@@ -195,8 +193,6 @@ export const getServerSideProps = async (context) => {
       process.env.NEXTAUTH_SITE
     )
 
-    // console.log('resp', resp)
-
     if (!resp) {
       return {
         notFound: true,
@@ -206,8 +202,6 @@ export const getServerSideProps = async (context) => {
     const { course, chapters, lectures, tasks } = resp
 
     const activeLectureId = params.lectureId
-
-    // console.log('activeLectureId', activeLectureId)
 
     const activeLecture =
       activeLectureId &&
@@ -230,13 +224,11 @@ export const getServerSideProps = async (context) => {
 
     const allUserAnswers = await fetchingAnswersByUserId(
       userId,
-      null,
       process.env.NEXTAUTH_SITE
     )
 
     const userViewedLectures = await fetchingUserViewedLecturesByUserId(
       userId,
-      null,
       process.env.NEXTAUTH_SITE
     )
 
