@@ -15,6 +15,7 @@ import {
   faUnderline,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import cn from 'classnames'
 import ContentEditable from 'react-contenteditable'
 
 const Button = ({ icon, cmd, arg, iconClassName }) => (
@@ -36,75 +37,92 @@ const GroupButtons = ({ name, children }) => (
   </div>
 )
 
-const EditableTextarea = ({ className, html, disabled, onChange, onBlur }) => {
+const EditableTextarea = ({
+  className,
+  html,
+  disabled,
+  onChange,
+  onBlur,
+  readonly = true,
+}) => {
   return (
-    <>
-      <div className="flex flex-wrap gap-1">
-        <GroupButtons name="Стиль">
-          <Button cmd="italic" icon={faItalic} />
-          <Button cmd="bold" icon={faBold} />
-          <Button cmd="underline" icon={faUnderline} />
-          <Button cmd="strikeThrough" icon={faStrikethrough} />
-          {/* <Button cmd="subscript" icon={faSubscript} />
+    <div className={cn('p-1', className)}>
+      {readonly ? (
+        <div
+          dangerouslySetInnerHTML={{
+            __html: html,
+          }}
+        />
+      ) : (
+        <>
+          <div className="flex flex-wrap gap-1">
+            <GroupButtons name="Стиль">
+              <Button cmd="italic" icon={faItalic} />
+              <Button cmd="bold" icon={faBold} />
+              <Button cmd="underline" icon={faUnderline} />
+              <Button cmd="strikeThrough" icon={faStrikethrough} />
+              {/* <Button cmd="subscript" icon={faSubscript} />
           <Button cmd="superscript" icon={faSuperscript} /> */}
-          {/* <Button cmd="removeFormat" icon={faBan} /> */}
-        </GroupButtons>
-        <GroupButtons name="Размер">
-          <Button
-            cmd="fontSize"
-            icon={faFont}
-            arg="2"
-            iconClassName="w-2 h-2"
-          />
-          <Button
-            cmd="fontSize"
-            icon={faFont}
-            arg="3"
-            iconClassName="w-2.5 h-2.5"
-          />
-          <Button
-            cmd="fontSize"
-            icon={faFont}
-            arg="4"
-            iconClassName="w-3 h-3"
-          />
-          <Button
-            cmd="fontSize"
-            icon={faFont}
-            arg="5"
-            iconClassName="w-3.5 h-3.5"
-          />
-          <Button
-            cmd="fontSize"
-            icon={faFont}
-            arg="6"
-            iconClassName="w-4 h-4"
-          />
-          <Button
-            cmd="fontSize"
-            icon={faFont}
-            arg="7"
-            iconClassName="w-5 h-5"
-          />
-        </GroupButtons>
-        <GroupButtons name="Выравнивание">
-          <Button cmd="justifyLeft" icon={faAlignLeft} />
-          <Button cmd="justifyCenter" icon={faAlignCenter} />
-          <Button cmd="justifyRight" icon={faAlignRight} />
-          <Button cmd="justifyFull" icon={faAlignJustify} />
-        </GroupButtons>
-        {/* <GroupButtons name="Список">
+              {/* <Button cmd="removeFormat" icon={faBan} /> */}
+            </GroupButtons>
+            <GroupButtons name="Размер">
+              <Button
+                cmd="fontSize"
+                icon={faFont}
+                arg="2"
+                iconClassName="w-2 h-2"
+              />
+              <Button
+                cmd="fontSize"
+                icon={faFont}
+                arg="3"
+                iconClassName="w-2.5 h-2.5"
+              />
+              <Button
+                cmd="fontSize"
+                icon={faFont}
+                arg="4"
+                iconClassName="w-3 h-3"
+              />
+              <Button
+                cmd="fontSize"
+                icon={faFont}
+                arg="5"
+                iconClassName="w-3.5 h-3.5"
+              />
+              <Button
+                cmd="fontSize"
+                icon={faFont}
+                arg="6"
+                iconClassName="w-4 h-4"
+              />
+              <Button
+                cmd="fontSize"
+                icon={faFont}
+                arg="7"
+                iconClassName="w-5 h-5"
+              />
+            </GroupButtons>
+            <GroupButtons name="Выравнивание">
+              <Button cmd="justifyLeft" icon={faAlignLeft} />
+              <Button cmd="justifyCenter" icon={faAlignCenter} />
+              <Button cmd="justifyRight" icon={faAlignRight} />
+              <Button cmd="justifyFull" icon={faAlignJustify} />
+            </GroupButtons>
+            {/* <GroupButtons name="Список">
           <Button cmd="superscript" icon={faAlignLeft} />
         </GroupButtons> */}
-      </div>
-      <ContentEditable
-        className={className}
-        html={html}
-        disabled={disabled}
-        onChange={onChange}
-        onBlur={onBlur}
-      />
-    </>
+          </div>
+          <ContentEditable
+            // className={className}
+            html={html}
+            disabled={disabled}
+            onChange={onChange}
+            onBlur={onBlur}
+          />
+        </>
+      )}
+    </div>
   )
 }
 

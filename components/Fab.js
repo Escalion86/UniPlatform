@@ -1,44 +1,95 @@
+import {
+  faGraduationCap,
+  faPencilAlt,
+  faPlus,
+  faSmile,
+} from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faWhatsapp } from '@fortawesome/free-brands-svg-icons'
+import { MODES } from '@helpers/constants'
+import cn from 'classnames'
 import { motion } from 'framer-motion'
+import { useState } from 'react'
 
-const pulse = {
-  pulse: {
-    initial: { scale: 1, opacity: 1 },
-    scale: [1, 1.4],
-    opacity: [1, 0],
-    // duration: 1,
-    // ease: ['backIn', 'easeOut', 'easeOut', 'easeOut'],
-    transition: {
-      // delay: 5,
-      duration: 1.5,
-      repeat: Infinity,
-      repeatDelay: 0.5,
-      times: [0, 1],
-    },
-  },
-}
+const Fab = ({
+  onClick = () => {},
+  show = true,
+  list = [],
+  activeValue = MODES.STUDENT,
+}) => {
+  const [opened, setOpened] = useState(false)
+  const indexOfActiveValue = list.findIndex(
+    (item) => activeValue === item.value
+  )
 
-export default function Fab() {
-  const color = 'rgb(87,209,99)'
   return (
-    <a
-      target="_blank"
-      rel="nofollow"
-      href="https://wa.me/79676005720"
-      className="fixed z-50 flex items-center justify-center p-3 text-white rounded-full w-14 h-14 right-16 bottom-16"
-      style={{ backgroundColor: color }}
+    <div
+      className={cn(
+        'flex flex-col justify-end absolute right-6 tablet:right-8',
+        show && list ? 'tablet:bottom-8 bottom-6' : '-bottom-20'
+      )}
+      style={{
+        minWidth: opened ? 240 : 0,
+        minHeight: opened ? list.length * 62 : 0,
+      }}
+      onMouseEnter={() => setOpened(true)}
+      onMouseLeave={() => setOpened(false)}
     >
-      {/* <motion.div className="absolute w-full h-full bg-green-500 rounded-full animate-ping"></motion.div> */}
-      <motion.div
-        variants={pulse}
-        initial={{ scale: 1, opacity: 1 }}
-        animate="pulse"
-        className="absolute w-full h-full rounded-full"
-        style={{ backgroundColor: color }}
-      />
+      <div
+        // transition={{ ease: 'linear' }}
+        // onBlur={() => setOpened(true)}
 
-      <FontAwesomeIcon className="z-10" icon={faWhatsapp} />
-    </a>
+        className="relative"
+      >
+        {list.map((item, index) => (
+          <motion.div
+            key={item.value}
+            onClick={() => {
+              console.log('item.value', item.value)
+              onClick(item.value)
+              setOpened(false)
+            }}
+            style={{
+              minWidth: 56,
+              backgroundColor: item.color,
+              zIndex: activeValue === item.value ? 999 : 999 - index,
+            }}
+            initial={{ width: 56 }}
+            animate={
+              opened
+                ? {
+                    width: 'auto',
+                    opacity: 1,
+                    bottom:
+                      index === indexOfActiveValue
+                        ? 0
+                        : (index < indexOfActiveValue ? index + 1 : index) * 64,
+                  }
+                : {
+                    width: 56,
+                    bottom: 0,
+                    opacity: index === indexOfActiveValue ? 1 : 0,
+                  }
+            }
+            transition={{
+              width: { ease: 'linear', delay: opened ? 0.3 : 0 },
+              bottom: { delay: opened ? 0 : 0.3 },
+              opacity: { delay: opened ? 0 : 0.3 },
+            }}
+            className={cn(
+              'absolute right-0 overflow-hidden flex items-center justify-end text-white rounded-full cursor-pointer h-14 hover:bg-toxic group tablet:h-14'
+            )}
+          >
+            <div className="pl-5 whitespace-nowrap">{item.name}</div>
+            <FontAwesomeIcon
+              className="z-10 w-5 h-5"
+              style={{ minWidth: 56 }}
+              icon={item.icon}
+            />
+          </motion.div>
+        ))}
+      </div>
+    </div>
   )
 }
+
+export default Fab

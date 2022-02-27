@@ -30,6 +30,13 @@ import CourseWrapper from '@layouts/content/CourseWrapper'
 import CourseContent from '@layouts/content/CourseContent'
 import ContentWrapper from '@layouts/content/ContentWrapper'
 import { sendImage, sendVideo } from '@helpers/cloudinary'
+import Fab from '@components/Fab'
+import {
+  faGraduationCap,
+  faPencilAlt,
+  faSmile,
+} from '@fortawesome/free-solid-svg-icons'
+import { MODES } from '@helpers/constants'
 
 function CoursePage(props) {
   const {
@@ -46,12 +53,17 @@ function CoursePage(props) {
   } = props
 
   const [isSideOpen, setIsSideOpen] = useState(true)
-  const [editMode, setEditMode] = useState(false)
+  const [mode, setMode] = useState(MODES.STUDENT)
 
   const [loading, setLoading] = useState()
 
   const router = useRouter()
 
+  const activeLectureTasks = activeLecture
+    ? tasks.filter((task) => task.lectureId === activeLecture._id)
+    : []
+
+  console.log('activeLectureTasks', activeLectureTasks)
   useEffect(() => {
     setLoading(false)
   }, [props])
@@ -64,6 +76,27 @@ function CoursePage(props) {
   }
 
   const goToCourseGeneralPage = () => router.replace('/course/' + course._id)
+
+  const fabList = [
+    {
+      value: MODES.ADMIN,
+      icon: faPencilAlt,
+      name: 'Режим редактирования',
+      color: '#AA0000',
+    },
+    {
+      value: MODES.TEACHER,
+      icon: faGraduationCap,
+      name: 'Режим преподавателя',
+      color: '#9563ff',
+    },
+    {
+      value: MODES.STUDENT,
+      icon: faSmile,
+      name: 'Режим ученика',
+      color: '#2A323B',
+    },
+  ]
 
   return (
     <>
@@ -97,7 +130,7 @@ function CoursePage(props) {
               activeLecture={activeLecture}
               activeChapter={activeChapter}
               userViewedLecturesIds={userViewedLecturesIds}
-              editMode={editMode}
+              mode={mode}
               refreshPage={refreshPage}
               goToCourseGeneralPage={goToCourseGeneralPage}
               setLoading={setLoading}
@@ -122,12 +155,20 @@ function CoursePage(props) {
                 course={course}
                 activeChapter={activeChapter}
                 activeLecture={activeLecture}
-                setEditMode={setEditMode}
-                editMode={editMode}
+                tasks={activeLectureTasks}
+                answers={answers}
+                setMode={setMode}
+                mode={mode}
                 userCourseAccess={userCourseAccess}
                 isSideOpen={isSideOpen}
                 refreshPage={refreshPage}
                 setIsSideOpen={setIsSideOpen}
+              />
+              <Fab
+                show={true}
+                onClick={setMode}
+                list={fabList}
+                activeValue={mode}
               />
               {/* )} */}
             </ContentWrapper>

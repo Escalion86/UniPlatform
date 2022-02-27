@@ -13,6 +13,25 @@ export async function fetchingAll(setState = () => {}) {
   return result[0]
 }
 
+export async function fetchingUsersCourses(domen = process.env.NEXTAUTH_SITE) {
+  console.log('Запущен fetchingUsersCourses')
+  const resp = await fetch(`${domen}/api/userscourses`)
+    .then((res) => res.json())
+    .then((json) => json.data)
+  return resp
+}
+
+export async function fetchingUsersCoursesByUserId(
+  userId,
+  domen = process.env.NEXTAUTH_SITE
+) {
+  console.log('Запущен fetchingUsersCoursesByUserId')
+  const resp = await fetch(`${domen}/api/userscourses/byUser/${userId}`)
+    .then((res) => res.json())
+    .then((json) => json.data)
+  return resp
+}
+
 export async function fetchingCourses(domen = process.env.NEXTAUTH_SITE) {
   console.log('Запущен fetchingCourses')
   const resp = await fetch(`${domen}/api/courses`)

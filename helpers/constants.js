@@ -45,3 +45,9 @@ export const GENDERS = [
 export const CLOUDINARY_FOLDER = isDevMode
   ? 'obnimisharik_courses_dev'
   : 'obnimisharik_courses'
+
+export const MODES = Object.freeze({
+  STUDENT: 'STUDENT',
+  ADMIN: 'ADMIN',
+  TEACHER: 'TEACHER',
+})

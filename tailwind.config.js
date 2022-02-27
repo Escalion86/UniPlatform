@@ -87,6 +87,7 @@ module.exports = {
       },
       minWidth: {
         // 4: '1rem',
+        5: '1.25rem',
         6: '1.5rem',
         8: '2rem',
         10: '2.5rem',
@@ -138,6 +139,8 @@ module.exports = {
         284: '71rem',
       },
       minHeight: {
+        5: '1.25rem',
+        6: '1.5rem',
         8: '2rem',
         20: '5rem',
         72: '18rem',

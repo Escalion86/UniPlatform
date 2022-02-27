@@ -16,6 +16,7 @@ import { CheckBox } from '@components/index'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import cn from 'classnames'
+import { MODES } from '@helpers/constants'
 
 const Lectures = ({
   courseId,
@@ -24,7 +25,7 @@ const Lectures = ({
   tasks,
   answers,
   userViewedLecturesIds,
-  editMode,
+  mode,
   refreshPage,
   chapter,
 }) => {
@@ -100,18 +101,18 @@ const Lectures = ({
                 <div
                   className={cn('relative flex items-center justify-center', {
                     'text-secondary':
-                      !editMode &&
+                      mode !== MODES.ADMIN &&
                       lectureHaveTasks &&
                       tasksStatusesArray.includes('sended') &&
                       !tasksStatusesArray.includes('declined'),
                     'text-success':
-                      !editMode &&
+                      mode !== MODES.ADMIN &&
                       lectureHaveTasks &&
                       tasksStatusesArray.every(
                         (status) => status === 'confirmed'
                       ),
                     'text-danger':
-                      !editMode &&
+                      mode !== MODES.ADMIN &&
                       lectureHaveTasks &&
                       tasksStatusesArray.includes('declined'),
                   })}
@@ -126,7 +127,7 @@ const Lectures = ({
                   <FontAwesomeIcon icon={faCalendar} />
                 </div>
               )}
-              {editMode && (
+              {mode === MODES.ADMIN && (
                 <div
                   className={
                     ' border-transparent border hover:border-danger p-1.5 -ml-1 -my-1 -mr-2 rounded-full relative duration-300 hover:scale-125 flex items-center w-8 h-8 justify-center text-danger'
@@ -145,7 +146,7 @@ const Lectures = ({
           // </div>
         )
       })}
-      {editMode && (
+      {mode === MODES.ADMIN && (
         <div
           className={
             'flex duration-300 gap-x-2 hover:bg-gray-200 cursor-pointer items-center justify-center border rounded-lg'
@@ -180,7 +181,7 @@ const Chapters = ({
   tasks,
   answers,
   userViewedLecturesIds,
-  editMode = false,
+  mode = MODES.STUDENT,
   refreshPage,
   goToCurseGeneralPage,
   setLoading,
@@ -239,7 +240,7 @@ const Chapters = ({
                 >
                   <FontAwesomeIcon icon={faAngleUp} />
                 </motion.div>
-                {editMode && (
+                {mode === MODES.ADMIN && (
                   <div
                     className={
                       'border-transparent border hover:border-danger p-1.5 -my-1 -mr-2 ml-2 rounded-full relative duration-300 hover:scale-125 flex items-center w-8 h-8 justify-center text-danger'
@@ -268,14 +269,14 @@ const Chapters = ({
                   chapter={chapter}
                   activeLectureId={activeLectureId}
                   userViewedLecturesIds={userViewedLecturesIds}
-                  editMode={editMode}
+                  mode={mode}
                   refreshPage={refreshPage}
                 />
               </motion.ul>
             </div>
           )
         })}
-      {editMode && (
+      {mode === MODES.ADMIN && (
         <div
           className={
             'flex h-12 duration-300 gap-x-2 bg-gray-200 hover:bg-gray-400 cursor-pointer items-center justify-center border rounded-lg'
@@ -313,7 +314,7 @@ const SideBar = ({
   activeLecture,
   activeChapter,
   userViewedLecturesIds,
-  editMode,
+  mode = MODES.STUDENT,
   refreshPage,
   goToCourseGeneralPage,
   setLoading,
@@ -346,7 +347,7 @@ const SideBar = ({
           activeLectureId={activeLecture?._id}
           activeChapterId={activeChapter?._id}
           userViewedLecturesIds={userViewedLecturesIds}
-          editMode={editMode}
+          mode={mode}
           refreshPage={refreshPage}
           goToCourseGeneralPage={goToCourseGeneralPage}
           setLoading={setLoading}

@@ -21,11 +21,6 @@ const coursesSchema = {
     type: String,
     default: '',
   },
-  usersRoles: {
-    type: Array,
-    of: Map,
-    default: [],
-  },
 }
 
 export default coursesSchema

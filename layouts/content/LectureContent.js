@@ -11,13 +11,150 @@ import LoadingSpinner from '@components/LoadingSpinner'
 import VideoPlayer from '@components/VideoPlayer'
 import fileSizeValidator from '@helpers/fileSizeValidator'
 import EditableTextarea from '@components/EditableTextarea'
+import { H4 } from '@components/tags'
+import {
+  faAngleUp,
+  faGraduationCap,
+  faPencilAlt,
+  faSmile,
+} from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { motion } from 'framer-motion'
+import { MODES } from '@helpers/constants'
+
+const Answer = ({ answer }) => {
+  return (
+    <div
+      className={cn('px-2 py-1 ml-2  bg-gray-200 border-l-4', {
+        'border-secondary': answer.status === 'sended',
+        'border-success': answer.status === 'confirmed',
+        'border-danger': answer.status === 'declined',
+      })}
+    >
+      <div>{answer.answer}</div>
+      <div className="flex gap-x-2">
+        <span className="font-bold">Статус:</span>
+        <span className="italic">
+          {answer.status === 'sended'
+            ? 'Отправлен на проверку'
+            : answer.status === 'confirmed'
+            ? 'Принят'
+            : answer.status === 'declined'
+            ? 'Отклонен'
+            : 'Неизвестен'}
+        </span>
+      </div>
+    </div>
+  )
+}
+
+const Task = ({ task, answers, mode = MODES.STUDENT }) => {
+  const [opened, setOpened] = useState(false)
+  console.log('task', task)
+  console.log('answers', answers)
+  const answersOfTask = answers.filter((answer) => answer.taskId === task._id)
+  const answersOfTaskStatuses = answersOfTask.map((answer) => answer.status)
+  const taskStatus = answersOfTaskStatuses.includes('sended')
+    ? 'sended'
+    : answersOfTaskStatuses.every((status) => status === 'confirmed')
+    ? 'confirmed'
+    : !answersOfTaskStatuses.includes('sended') &&
+      answersOfTaskStatuses.includes('declined')
+    ? 'declined'
+    : 'none'
+
+  return (
+    <div
+      className={cn(
+        'px-2 py-1 bg-gray-200 border-l-4'
+        // , {
+        //   'border-secondary': taskStatus === 'sended',
+        //   'border-success': taskStatus === 'confirmed',
+        //   'border-danger': taskStatus === 'declined',
+        //   'border-gray-400': taskStatus === 'none',
+        // }
+      )}
+    >
+      <div
+        className="flex justify-between cursor-pointer"
+        onClick={() => {
+          if (mode !== MODES.ADMIN) setOpened((state) => !state)
+        }}
+      >
+        <div className="flex flex-1 font-bold">
+          <span className="whitespace-nowrap">
+            Задание №{task.index + 1}
+            {task.title && ':'}
+          </span>
+          <EditText
+            className={cn(
+              'w-full px-1 py-0 m-0 leading-6 font-bold whitespace-normal border-b outline-none',
+              mode === MODES.ADMIN
+                ? 'border-purple-600 bg-white'
+                : 'border-transparent'
+            )}
+            style={{ minHeight: 26 }}
+            value={task.title}
+            inline
+            // onChange={(title) => {
+            //   updateNewLecture({ title })
+            // }}
+            // onSave={({ value }) => saveLecture({ title: value })}
+            readonly={mode !== MODES.ADMIN}
+          />
+        </div>
+        <div
+          className="flex items-center justify-center w-6"
+          onClick={() => {
+            if (mode === MODES.ADMIN) setOpened((state) => !state)
+          }}
+        >
+          <motion.div animate={{ rotate: opened ? -180 : 0 }} className="w-3">
+            <FontAwesomeIcon icon={faAngleUp} />
+          </motion.div>
+        </div>
+      </div>
+      <motion.div
+        animate={{ height: opened ? 'auto' : 0 }}
+        initial={{ height: 0 }}
+        className="overflow-y-hidden"
+      >
+        <EditableTextarea
+          className="bg-white border-b border-purple-600 outline-none"
+          // innerRef={this.contentEditable}
+          html={task.description}
+          disabled={false}
+          // onChange={handleChangeDescription}
+          // onBlur={() => {
+          //   if (isOpenedCourse) {
+          //     saveCourse({ description: description.current })
+          //   } else {
+          //     saveLecture({ description: description.current })
+          //   }
+          // }}
+          readonly={mode !== MODES.ADMIN}
+        />
+        {/* {task.description} */}
+        {/* <Divider /> */}
+        <div className="mt-3 font-bold">Ответы</div>
+        <div className="flex flex-col gap-y-3">
+          {answersOfTask.map((answer) => (
+            <Answer key={answer._id} answer={answer} />
+          ))}
+        </div>
+      </motion.div>
+    </div>
+  )
+}
 
 const LectureContent = ({
   course,
   activeChapter = false,
   activeLecture = false,
-  setEditMode,
-  editMode,
+  tasks = [],
+  answers = [],
+  setMode,
+  mode,
   userCourseAccess,
   isSideOpen,
   setIsSideOpen,
@@ -115,7 +252,7 @@ const LectureContent = ({
   }
 
   return (
-    <>
+    <div className="pb-5">
       <div className="relative group">
         <div
           className={cn(
@@ -154,19 +291,19 @@ const LectureContent = ({
                 >
                   <button
                     onClick={() => {
-                      if (!editMode) {
+                      if (mode !== MODES.ADMIN) {
                         setNewLectureState(activeLecture)
                         setNewChapterState(activeChapter)
-                        setEditMode(true)
+                        setMode(MODES.ADMIN)
                       } else {
-                        setEditMode(false)
+                        setMode(MODES.STUDENT)
                       }
                     }}
                     className={cn(
                       'w-80 h-12 p-2 text-white bg-black border border-gray-200 bg-opacity-90 hover:bg-gray-600'
                     )}
                   >
-                    {editMode
+                    {mode === MODES.ADMIN
                       ? 'Выйти из режима редактирования'
                       : 'Переключить в режим редактирования'}
                   </button>
@@ -217,7 +354,7 @@ const LectureContent = ({
         </div>
       </div>
       <div className="flex flex-col px-2 tablet:px-12 desktop:w-5/6 laptop:px-20">
-        {editMode && (
+        {mode === MODES.ADMIN && (
           <div className="mt-2">
             <input
               type="file"
@@ -296,10 +433,10 @@ const LectureContent = ({
           <EditText
             className={cn(
               'w-full px-1 py-0 m-0 font-bold whitespace-normal border-b outline-none',
-              editMode ? 'border-purple-600' : 'border-transparent'
+              mode === MODES.ADMIN ? 'border-purple-600' : 'border-transparent'
             )}
             value={
-              editMode
+              mode === MODES.ADMIN
                 ? isOpenedCourse
                   ? newCourseState.title
                   : newChapterState?.title ?? ''
@@ -322,7 +459,7 @@ const LectureContent = ({
                 saveChapter({ title: value })
               }
             }}
-            readonly={!editMode}
+            readonly={mode !== MODES.ADMIN}
           />
         </h2>
         {/* <h3 className="py-2 text-xl font-bold">
@@ -340,10 +477,12 @@ const LectureContent = ({
             <EditText
               className={cn(
                 'w-full px-1 py-0 m-0 font-bold whitespace-normal border-b outline-none',
-                editMode ? 'border-purple-600' : 'border-transparent'
+                mode === MODES.ADMIN
+                  ? 'border-purple-600 bg-white'
+                  : 'border-transparent'
               )}
               value={
-                editMode
+                mode === MODES.ADMIN
                   ? newLectureState?.title ?? ''
                   : activeLecture?.title ?? ''
               }
@@ -352,13 +491,13 @@ const LectureContent = ({
                 updateNewLecture({ title })
               }}
               onSave={({ value }) => saveLecture({ title: value })}
-              readonly={!editMode}
+              readonly={mode !== MODES.ADMIN}
             />
           </div>
         )}
         <Divider light />
         {/* <div className="text-base">{activeLecture.description}</div> */}
-        {editMode ? (
+        {mode === MODES.ADMIN ? (
           <EditableTextarea
             className="border-b border-purple-600 outline-none"
             // innerRef={this.contentEditable}
@@ -375,6 +514,7 @@ const LectureContent = ({
                 saveLecture({ description: description.current })
               }
             }}
+            readonly={mode !== MODES.ADMIN}
             // tagName='article' // Use a custom HTML tag (uses a div by default)
           />
         ) : (
@@ -386,8 +526,28 @@ const LectureContent = ({
             }}
           ></div>
         )}
+        <Divider light />
+        {tasks.length > 0 ? (
+          <div className="flex flex-col gap-y-2">
+            <p className="text-lg font-bold">Задания к лекции</p>
+            {tasks.map((task) => {
+              return (
+                <Task
+                  key={task._id}
+                  task={task}
+                  answers={answers.filter(
+                    (answer) => answer.taskId === task._id
+                  )}
+                  mode={mode}
+                />
+              )
+            })}
+          </div>
+        ) : (
+          <div>Заданий для этой лекции нет</div>
+        )}
       </div>
-    </>
+    </div>
   )
 }
 
