@@ -12,15 +12,11 @@ import VideoPlayer from '@components/VideoPlayer'
 import fileSizeValidator from '@helpers/fileSizeValidator'
 import EditableTextarea from '@components/EditableTextarea'
 import { H4 } from '@components/tags'
-import {
-  faAngleUp,
-  faGraduationCap,
-  faPencilAlt,
-  faSmile,
-} from '@fortawesome/free-solid-svg-icons'
+import { faAngleUp } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { motion } from 'framer-motion'
 import { MODES } from '@helpers/constants'
+import EditableText from '@components/EditableText'
 
 const Answer = ({ answer }) => {
   return (
@@ -76,31 +72,26 @@ const Task = ({ task, answers, mode = MODES.STUDENT }) => {
       )}
     >
       <div
-        className="flex justify-between cursor-pointer"
+        className="flex justify-between h-8 cursor-pointer"
         onClick={() => {
           if (mode !== MODES.ADMIN) setOpened((state) => !state)
         }}
       >
-        <div className="flex flex-1 font-bold">
+        <div className="flex items-center flex-1 font-bold">
           <span className="whitespace-nowrap">
             Задание №{task.index + 1}
             {task.title && ':'}
           </span>
-          <EditText
-            className={cn(
-              'w-full px-1 py-0 m-0 leading-6 font-bold whitespace-normal border-b outline-none',
-              mode === MODES.ADMIN
-                ? 'border-purple-600 bg-white'
-                : 'border-transparent'
-            )}
-            style={{ minHeight: 26 }}
+          <EditableText
+            textClass="font-bold"
+            style={{ lineHeight: 1.7 }}
             value={task.title}
-            inline
-            // onChange={(title) => {
-            //   updateNewLecture({ title })
-            // }}
-            // onSave={({ value }) => saveLecture({ title: value })}
+            onChange={(title) => {
+              updateNewLecture({ title })
+            }}
+            onSave={(title) => saveLecture({ title })}
             readonly={mode !== MODES.ADMIN}
+            mode={mode}
           />
         </div>
         <div
@@ -281,7 +272,7 @@ const LectureContent = ({
                 Оглавление
               </button>
             </div>
-            <div className="flex">
+            {/* <div className="flex">
               {userCourseAccess === 'admin' && (
                 <div
                   className={cn(
@@ -308,8 +299,8 @@ const LectureContent = ({
                       : 'Переключить в режим редактирования'}
                   </button>
                 </div>
-              )}
-              {/* <div
+              )} */}
+            {/* <div
               className={cn('duration-200 overflow-hidden w-0', {
                 'w-40': editMode,
               })}
@@ -340,7 +331,7 @@ const LectureContent = ({
                 Не сохранять
               </button>
             </div> */}
-            </div>
+            {/* </div> */}
           </div>
         </div>
 
@@ -430,11 +421,8 @@ const LectureContent = ({
               ? `Курс - `
               : `Раздел №${activeChapter?.index + 1} - `}
           </span>
-          <EditText
-            className={cn(
-              'w-full px-1 py-0 m-0 font-bold whitespace-normal border-b outline-none',
-              mode === MODES.ADMIN ? 'border-purple-600' : 'border-transparent'
-            )}
+          <EditableText
+            textClass="font-bold"
             value={
               mode === MODES.ADMIN
                 ? isOpenedCourse
@@ -444,7 +432,6 @@ const LectureContent = ({
                 ? course.title
                 : activeChapter?.title ?? ''
             }
-            // inline
             onChange={(title) => {
               if (isOpenedCourse) {
                 updateNewCourse({ title })
@@ -452,7 +439,7 @@ const LectureContent = ({
                 updateNewChapter({ title })
               }
             }}
-            onSave={({ value }) => {
+            onSave={(value) => {
               if (isOpenedCourse) {
                 saveCourse({ title: value })
               } else {
@@ -460,6 +447,7 @@ const LectureContent = ({
               }
             }}
             readonly={mode !== MODES.ADMIN}
+            mode={mode}
           />
         </h2>
         {/* <h3 className="py-2 text-xl font-bold">
@@ -473,8 +461,21 @@ const LectureContent = ({
             <span className="whitespace-nowrap">
               Лекция №{activeLecture?.index + 1} -
             </span>
-
-            <EditText
+            <EditableText
+              textClass="font-bold"
+              value={
+                mode === MODES.ADMIN
+                  ? newLectureState?.title ?? ''
+                  : activeLecture?.title ?? ''
+              }
+              onChange={(title) => {
+                updateNewLecture({ title })
+              }}
+              onSave={(title) => saveLecture({ title })}
+              readonly={mode !== MODES.ADMIN}
+              mode={mode}
+            />
+            {/* <EditText
               className={cn(
                 'w-full px-1 py-0 m-0 font-bold whitespace-normal border-b outline-none',
                 mode === MODES.ADMIN
@@ -492,7 +493,7 @@ const LectureContent = ({
               }}
               onSave={({ value }) => saveLecture({ title: value })}
               readonly={mode !== MODES.ADMIN}
-            />
+            /> */}
           </div>
         )}
         <Divider light />

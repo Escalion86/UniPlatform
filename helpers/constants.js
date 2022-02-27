@@ -47,7 +47,7 @@ export const CLOUDINARY_FOLDER = isDevMode
   : 'obnimisharik_courses'
 
 export const MODES = Object.freeze({
-  STUDENT: 'STUDENT',
-  ADMIN: 'ADMIN',
-  TEACHER: 'TEACHER',
+  ADMIN: 'admin',
+  TEACHER: 'teacher',
+  STUDENT: 'student',
 })

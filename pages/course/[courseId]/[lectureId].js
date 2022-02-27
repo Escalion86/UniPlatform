@@ -48,7 +48,7 @@ function CoursePage(props) {
     tasks,
     answers,
     user,
-    userCourseAccess,
+    userCourseAccess = MODES.STUDENT,
     userViewedLecturesIds,
   } = props
 
@@ -164,13 +164,19 @@ function CoursePage(props) {
                 refreshPage={refreshPage}
                 setIsSideOpen={setIsSideOpen}
               />
-              <Fab
-                show={true}
-                onClick={setMode}
-                list={fabList}
-                activeValue={mode}
-              />
-              {/* )} */}
+              {(userCourseAccess === MODES.ADMIN ||
+                userCourseAccess === MODES.TEACHER) && (
+                <Fab
+                  show={true}
+                  onClick={setMode}
+                  list={fabList.filter(
+                    (item) =>
+                      userCourseAccess === MODES.ADMIN ||
+                      item.value !== MODES.ADMIN
+                  )}
+                  activeValue={mode}
+                />
+              )}
             </ContentWrapper>
           </>
         )}
@@ -300,7 +306,7 @@ export const getServerSideProps = async (context) => {
         activeLecture,
         activeChapter,
         user: session?.user ? session.user : null,
-        userCourseAccess: userRole ?? 'viewer',
+        userCourseAccess: userRole ?? MODES.STUDENT,
       },
     }
   } catch {
