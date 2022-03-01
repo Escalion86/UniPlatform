@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import {
   faAngleUp,
+  faCheck,
   faPlus,
   faTimes,
   faTrash,
@@ -16,7 +17,8 @@ import { CheckBox } from '@components/index'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import cn from 'classnames'
-import { MODES } from '@helpers/constants'
+import { MODES, TASK_ICON_STATUSES } from '@helpers/constants'
+import { modifyRouteRegex } from 'next/dist/lib/load-custom-routes'
 
 const Lectures = ({
   courseId,
@@ -79,6 +81,10 @@ const Lectures = ({
           refreshPage()
         }
 
+        const tasksWithStatusSendedCount = tasksStatusesArray.filter(
+          (status) => status === 'sended'
+        ).length
+
         return (
           // <div key={'lecture' + lecture.index} className="block">
           <Link
@@ -97,22 +103,46 @@ const Lectures = ({
               <span className="flex-1">{`${lecture.index + 1}. ${
                 lecture.title
               }`}</span>
-              {lectureHaveTasks && (
+              {mode === MODES.TEACHER && (
+                <div
+                  className={cn(
+                    'flex p-1 justify-center items-center -ml-1.5 border-2 rounded-full min-w-6 h-6 w-6',
+                    // TASK_ICON_STATUSES['sended'].color,
+                    tasksWithStatusSendedCount === 0
+                      ? 'border-success text-success'
+                      : cn(
+                          TASK_ICON_STATUSES['sended'].border,
+                          TASK_ICON_STATUSES['sended'].color
+                        )
+                  )}
+                >
+                  {tasksWithStatusSendedCount > 0 ? (
+                    tasksWithStatusSendedCount > 99 ? (
+                      '>99'
+                    ) : (
+                      tasksWithStatusSendedCount
+                    )
+                  ) : (
+                    <FontAwesomeIcon icon={faCheck} />
+                  )}
+                </div>
+              )}
+              {mode !== MODES.TEACHER && lectureHaveTasks && (
                 <div
                   className={cn('relative flex items-center justify-center', {
                     'text-secondary':
-                      mode !== MODES.ADMIN &&
+                      mode === MODES.STUDENT &&
                       lectureHaveTasks &&
                       tasksStatusesArray.includes('sended') &&
                       !tasksStatusesArray.includes('declined'),
                     'text-success':
-                      mode !== MODES.ADMIN &&
+                      mode === MODES.STUDENT &&
                       lectureHaveTasks &&
                       tasksStatusesArray.every(
                         (status) => status === 'confirmed'
                       ),
                     'text-danger':
-                      mode !== MODES.ADMIN &&
+                      mode === MODES.STUDENT &&
                       lectureHaveTasks &&
                       tasksStatusesArray.includes('declined'),
                   })}
@@ -120,11 +150,11 @@ const Lectures = ({
                 >
                   <div
                     className="absolute text-xs font-bold"
-                    style={{ top: 5 }}
+                    style={{ top: 4 }}
                   >
                     {tasksOfLectureIds.length}
                   </div>
-                  <FontAwesomeIcon icon={faCalendar} />
+                  <FontAwesomeIcon className="-mt-0.5" icon={faCalendar} />
                 </div>
               )}
               {mode === MODES.ADMIN && (
@@ -210,7 +240,7 @@ const Chapters = ({
       {chapters
         .sort((a, b) => a.index < b.index)
         .map((chapter) => {
-          const [opened, setOpened] = useState(false)
+          const [opened, setOpened] = useState(chapter._id === activeChapterId)
 
           const chapterLectures = lectures
             .filter((lecture) => lecture.chapterId === chapter._id)
@@ -221,7 +251,7 @@ const Chapters = ({
               <div
                 onClick={() => setOpened((state) => !state)}
                 className={cn(
-                  'flex items-center p-4 cursor-pointer hover:bg-gray-400',
+                  'flex items-center px-4 py-3 cursor-pointer hover:bg-gray-400',
                   activeChapterId === chapter._id
                     ? 'bg-gray-300'
                     : 'bg-gray-200'
@@ -229,8 +259,8 @@ const Chapters = ({
                 style={{ borderTop: '1px solid #d1d7dc' }}
               >
                 <div className="flex-1">
-                  <div className="font-bold">{`Раздел ${chapter.index + 1}: ${
-                    chapter.title
+                  <div className="font-bold">{`Раздел ${chapter.index + 1}${
+                    chapter.title ? `: ${chapter.title}` : ''
                   }`}</div>
                   <div className="text-sm">{chapterLectures.length} лекции</div>
                 </div>

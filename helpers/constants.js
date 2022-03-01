@@ -1,4 +1,11 @@
-import { faMars, faVenus } from '@fortawesome/free-solid-svg-icons'
+import {
+  faCheckCircle,
+  faCircle,
+  faClock,
+  faMars,
+  faTimesCircle,
+  faVenus,
+} from '@fortawesome/free-solid-svg-icons'
 import isDevMode from './isDevMode'
 
 export const DEFAULT_USER = {
@@ -51,3 +58,30 @@ export const MODES = Object.freeze({
   TEACHER: 'teacher',
   STUDENT: 'student',
 })
+
+export const TASK_ICON_STATUSES = {
+  none: {
+    color: 'text-gray-400',
+    border: 'border-gray-400',
+    icon: faCircle,
+    name: '',
+  },
+  sended: {
+    color: 'text-secondary',
+    border: 'border-secondary',
+    icon: faClock,
+    name: 'Отправлен на проверку',
+  },
+  confirmed: {
+    color: 'text-success',
+    border: 'border-success',
+    icon: faCheckCircle,
+    name: 'Принят',
+  },
+  declined: {
+    color: 'text-danger',
+    border: 'border-danger',
+    icon: faTimesCircle,
+    name: 'Отклонён',
+  },
+}

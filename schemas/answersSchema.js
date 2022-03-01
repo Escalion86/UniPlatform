@@ -11,7 +11,6 @@ const answersSchema = {
   },
   teacherId: {
     type: String,
-    required: [true, 'Укажите учителя проверяющего задание'],
     default: '',
   },
   answer: {

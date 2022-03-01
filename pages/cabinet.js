@@ -35,6 +35,7 @@ import { H2, H3 } from '@components/tags'
 import UsersCourses from '@models/UsersCourses'
 import dbConnect from '@utils/dbConnect'
 import Courses from '@models/Courses'
+import { MODES } from '@helpers/constants'
 
 const CourseCard = ({ course }) => {
   return <div className="bg-white"></div>
@@ -106,14 +107,11 @@ function CabinetPage({ courses, user, coursesStatus }) {
           </div>
           <button
             onClick={() => {
-              postData(
-                `/api/courses`,
-                { usersRoles: [{ userId: user._id, role: 'admin' }] },
-                (course) => {
-                  console.log('course', course)
-                  router.push(`./course/${course._id}/general`)
-                }
-              )
+              postData(`/api/courses/${user._id}`, {}, (data) => {
+                console.log('data', data)
+
+                router.push(`./course/${data.course._id}/general`)
+              })
             }}
             className="w-40 px-2 py-1 text-white duration-300 bg-purple-700 border border-purple-200 rounded-md tablet:w-auto hover:text-purple-700 hover:bg-white hover:border-purple-700"
           >

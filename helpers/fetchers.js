@@ -218,6 +218,14 @@ export async function fetchingUsers(domen = process.env.NEXTAUTH_SITE) {
   return resp
 }
 
+export async function fetchingUsersById(id, domen = process.env.NEXTAUTH_SITE) {
+  console.log('Запущен fetchingUsersById')
+  const resp = await fetch(`${domen}/api/users/byId/${id}`)
+    .then((res) => res.json())
+    .then((json) => json.data)
+  return resp
+}
+
 export async function fetchingUserByEmail(
   email,
   domen = process.env.NEXTAUTH_SITE

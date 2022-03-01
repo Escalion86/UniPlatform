@@ -6,9 +6,8 @@ const tasksSchema = {
   },
   title: {
     type: String,
-    required: [true, 'Введите название задания. Давай включи фантазию!'],
     maxlength: [100, 'Название задания не может превышать 100 смволов'],
-    default: '',
+    default: 'Название задания',
   },
   description: {
     type: String,
@@ -16,7 +15,7 @@ const tasksSchema = {
       600,
       'Описание не может превышать 600 символов. Краткость - сестра таланта!',
     ],
-    default: '',
+    default: 'Описание задания',
   },
   index: {
     type: Number,

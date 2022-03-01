@@ -5,7 +5,7 @@ import Users from '@models/Users'
 // import CRUD from '@server/CRUD'
 // import Auth0Provider from 'next-auth/providers/auth0'
 import GoogleProvider from 'next-auth/providers/google'
-import { fetchingUserByEmail, fetchingUsers } from '@helpers/fetchers'
+import { fetchingUserByEmail } from '@helpers/fetchers'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import dbConnect from '@utils/dbConnect'
 // import VkProvider from 'next-auth/providers/vk'
@@ -108,9 +108,7 @@ export default async function auth(req, res) {
     ],
     callbacks: {
       async session({ session, token }) {
-        console.log('!!!session', session)
         const { user } = session
-        console.log('user', user)
         const userEmail = user.email?.toLowerCase()
         // const cached = await dbConnect()
         const result = await fetchingUserByEmail(

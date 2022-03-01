@@ -37,6 +37,14 @@ import {
   faSmile,
 } from '@fortawesome/free-solid-svg-icons'
 import { MODES } from '@helpers/constants'
+import Users from '@models/Users'
+import dbConnect from '@utils/dbConnect'
+import Courses from '@models/Courses'
+import Lectures from '@models/Lectures'
+import Chapters from '@models/Chapters'
+import Tasks from '@models/Tasks'
+import Answers from '@models/Answers'
+import UsersCourses from '@models/UsersCourses'
 
 function CoursePage(props) {
   const {
@@ -50,10 +58,11 @@ function CoursePage(props) {
     user,
     userCourseAccess = MODES.STUDENT,
     userViewedLecturesIds,
+    usersInCourse,
   } = props
 
   const [isSideOpen, setIsSideOpen] = useState(true)
-  const [mode, setMode] = useState(MODES.STUDENT)
+  const [mode, setMode] = useState(userCourseAccess)
 
   const [loading, setLoading] = useState()
 
@@ -63,13 +72,13 @@ function CoursePage(props) {
     ? tasks.filter((task) => task.lectureId === activeLecture._id)
     : []
 
-  console.log('activeLectureTasks', activeLectureTasks)
   useEffect(() => {
     setLoading(false)
   }, [props])
 
   const refreshPage = (lectureId = null) => {
-    if (!lectureId) router.replace(router.asPath)
+    if (!lectureId || typeof lectureId !== 'string')
+      router.replace(router.asPath)
     else {
       router.replace('/course/' + course._id + '/' + lectureId)
     }
@@ -160,6 +169,7 @@ function CoursePage(props) {
                 setMode={setMode}
                 mode={mode}
                 userCourseAccess={userCourseAccess}
+                user={user}
                 isSideOpen={isSideOpen}
                 refreshPage={refreshPage}
                 setIsSideOpen={setIsSideOpen}
@@ -216,11 +226,24 @@ export default CoursePage
 //   }
 // }
 
+const arrayToObjId = (arr, idKey = '_id') => {
+  const obj = {}
+  arr.forEach((item) => {
+    obj[item[idKey]] = item
+  })
+  return obj
+}
+
+const getIds = (arr = [], key = '_id') => arr.map((item) => item[key])
+
 export const getServerSideProps = async (context) => {
   const session = await getSession({ req: context.req })
+  await dbConnect()
 
   const { params } = context
-  if (!params) {
+  const { courseId, lectureId } = params
+
+  if (!params || !courseId) {
     return {
       notFound: true,
     }
@@ -229,35 +252,86 @@ export const getServerSideProps = async (context) => {
   if (!session) {
     return {
       redirect: {
-        destination: `/login?CourseId=${params.courseId}&LectureId=${params.lectureId}`,
+        destination: `/login?CourseId=${courseId}&LectureId=${lectureId}`,
       },
     }
   }
 
   try {
-    const resp = await fetchingCourseAndHisChaptersAndLecturesAndTasks(
-      params.courseId,
-      process.env.NEXTAUTH_SITE
-    )
+    const course = JSON.parse(JSON.stringify(await Courses.findById(courseId)))
 
-    if (!resp) {
+    if (!course) {
       return {
         notFound: true,
       }
     }
 
-    const { course, chapters, lectures, tasks } = resp
+    // Прежде чем продолжить сначала проверим в какой роли в этом курсе находится пользователь
+    // Найдем сначала всех пользователей которые причастны к курсу
+    const usersOfCourse = JSON.parse(
+      JSON.stringify(
+        await UsersCourses.find({
+          courseId: course._id,
+        })
+      )
+    )
 
-    const activeLectureId = params.lectureId
+    if (!usersOfCourse) {
+      return {
+        notFound: true,
+      }
+    }
+
+    // Теперь найдем права доступа залогиненного пользователя
+    const userCourseAccess = session?.user
+      ? usersOfCourse.find(
+          (userCourse) => userCourse.userId === session.user._id
+        )?.status
+      : null
+
+    // Если не нашли, то значит у пользователя нет доступа к курсу
+    if (!userCourseAccess) {
+      return {
+        notFound: true,
+      }
+    }
+
+    const chapters = JSON.parse(
+      JSON.stringify(
+        await Chapters.find({
+          courseId: course._id,
+        })
+      )
+    )
+
+    if (!chapters) {
+      return {
+        notFound: true,
+      }
+    }
+
+    const lectures = JSON.parse(
+      JSON.stringify(
+        await Lectures.find({
+          chapterId: { $in: getIds(chapters) },
+        })
+      )
+    )
+
+    if (!lectures) {
+      return {
+        notFound: true,
+      }
+    }
 
     const activeLecture =
-      activeLectureId &&
-      activeLectureId !== 'general' &&
-      lectures.find((lection) => lection._id === activeLectureId)
+      lectureId &&
+      lectureId !== 'general' &&
+      lectures.find((lection) => lection._id === lectureId)
 
-    const isActiveLectionIdExist = !!activeLecture
+    const isActiveLectionIdExist = !!activeLecture?._id
 
-    if (!isActiveLectionIdExist && activeLectureId !== 'general') {
+    if (!isActiveLectionIdExist && lectureId !== 'general') {
       return {
         notFound: true,
       }
@@ -267,33 +341,137 @@ export const getServerSideProps = async (context) => {
       ? chapters.find((chapter) => chapter._id === activeLecture.chapterId)
       : null
 
-    const userId = session.user._id
-
-    const allUserAnswers = await fetchingAnswersByUserId(
-      userId,
-      process.env.NEXTAUTH_SITE
+    const tasks = JSON.parse(
+      JSON.stringify(
+        await Tasks.find({
+          lectureId: { $in: getIds(lectures) },
+        })
+      )
     )
 
-    const userViewedLectures = await fetchingUserViewedLecturesByUserId(
-      userId,
-      process.env.NEXTAUTH_SITE
+    if (!tasks) {
+      return {
+        notFound: true,
+      }
+    }
+
+    // Ответы в курсе будем искать в зависимости от прав пользователя. Если это просто студент, то будем искать только его ответы
+    const obj = {
+      taskId: { $in: getIds(tasks) },
+    }
+    if (
+      userCourseAccess !== MODES.ADMIN &&
+      userCourseAccess !== MODES.TEACHER
+    ) {
+      obj.userId = session.user._id
+    }
+    let answers = JSON.parse(JSON.stringify(await Answers.find(obj)))
+
+    if (!answers) {
+      return {
+        notFound: true,
+      }
+    }
+
+    // Формируем пользователей причастных к курсу, но берем только нужные поля
+    const users = JSON.parse(
+      JSON.stringify(
+        await Users.find({ _id: { $in: getIds(usersOfCourse, 'userId') } })
+      )
     )
+    const usersInCourse = users.map((user) => {
+      return {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        statusInCourse: usersOfCourse.find(
+          (userCourse) => userCourse.userId === user._id
+        ).status,
+      }
+    })
 
-    const userViewedLecturesIds = userViewedLectures.map(
-      (item) => item.lectureId
-    )
+    // Добавляем к ответам данные пользователя
+    answers = answers.map((answer) => {
+      return {
+        ...answer,
+        user: usersInCourse.find((user) => user._id === answer.userId),
+      }
+    })
 
-    const tasksIds = tasks.map((task) => task._id)
+    // const resp = await fetchingCourseAndHisChaptersAndLecturesAndTasks(
+    //   params.courseId,
+    //   process.env.NEXTAUTH_SITE
+    // )
 
-    const courseAnswers = allUserAnswers.filter((answer) =>
-      tasksIds.includes(answer.taskId)
-    )
+    // if (!resp) {
+    //   return {
+    //     notFound: true,
+    //   }
+    // }
 
-    const userRole = session?.user
-      ? course.usersRoles.find(
-          (userIdAndRole) => userIdAndRole.userId === session.user._id
-        )?.role
-      : null
+    // const { course, chapters, lectures, tasks } = resp
+
+    // const activeChapter = activeLecture
+    //   ? chapters.find((chapter) => chapter._id === activeLecture.chapterId)
+    //   : null
+
+    // const userId = session.user._id
+
+    // const allUserAnswers = await fetchingAnswersByUserId(
+    //   userId,
+    //   process.env.NEXTAUTH_SITE
+    // )
+
+    // const userViewedLectures = await fetchingUserViewedLecturesByUserId(
+    //   userId,
+    //   process.env.NEXTAUTH_SITE
+    // )
+
+    // const userViewedLecturesIds = userViewedLectures.map(
+    //   (item) => item.lectureId
+    // )
+
+    // const tasksIds = tasks.map((task) => task._id)
+
+    // let courseAnswers = allUserAnswers.filter((answer) =>
+    //   tasksIds.includes(answer.taskId)
+    // )
+
+    // const userRole = session?.user
+    //   ? course.usersRoles.find(
+    //       (userIdAndRole) => userIdAndRole.userId === session.user._id
+    //     )?.role
+    //   : null
+
+    // let usersInCourse = []
+
+    // if (userRole === MODES.TEACHER || userRole === MODES.ADMIN) {
+    //   let usersInAnswers = {}
+    //   courseAnswers.forEa
+
+    //   const usersAnswers = courseAnswers.map((answer) => answer.userId)
+
+    //   const usersIdsInCourse = [...new Set(usersAnswers)]
+    //   usersInCourse = JSON.parse(
+    //     JSON.stringify(
+    //       await Users.find({
+    //         _id: { $in: usersIdsInCourse },
+    //       })
+    //     )
+    //   ).map((user) => {
+    //     return {
+    //       _id: user._id,
+    //       name: user.name,
+    //       email: user.email,
+    //     }
+    //   })
+    // }
+
+    // courseAnswers = courseAnswers.map((answer) => {
+    //   const updatedAnswer = {...answer}
+    //   delete updatedAnswer.UserId
+    //   updatedAnswer.user =
+    // })
 
     return {
       props: {
@@ -301,12 +479,13 @@ export const getServerSideProps = async (context) => {
         chapters,
         lectures,
         tasks,
-        answers: courseAnswers,
-        userViewedLecturesIds,
+        answers,
+        userViewedLecturesIds: [], // FIX Исправить
         activeLecture,
         activeChapter,
         user: session?.user ? session.user : null,
-        userCourseAccess: userRole ?? MODES.STUDENT,
+        userCourseAccess,
+        usersInCourse,
       },
     }
   } catch {
