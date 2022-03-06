@@ -75,6 +75,7 @@ const EditableTextarea = ({
   useEffect(() => {
     if (uncontrolled && isSaveProcess && html === textHtml)
       setIsSaveProcess(false)
+    if (html !== textHtml) setTextHtml(html)
   }, [html])
 
   return (
