@@ -26,7 +26,7 @@ const Section = ({ id }) => <section id={id} className="relative -top-24" />
 const BlockContainer = ({ id, className, children }) => (
   <div
     className={cn(
-      'flex flex-col items-start px-10 py-20 min-h-100 tablet:px-20 gap-y-4 tablet:gap-y-6',
+      'flex flex-col items-start px-10 py-20 min-h-80 tablet:px-20 gap-y-4 tablet:gap-y-6',
       className
     )}
   >
@@ -37,7 +37,7 @@ const BlockContainer = ({ id, className, children }) => (
 
 const CardBenefits = ({ icon, title, children }) => (
   <div className="flex flex-col items-center gap-y-2">
-    <FontAwesomeIcon icon={icon} size="6x" />
+    <FontAwesomeIcon className="w-20 tablet:w-28" icon={icon} />
     <div className="flex items-center laptop:h-16">
       <H4>{title}</H4>
     </div>
@@ -49,7 +49,7 @@ const Button = ({ title, className, onClick }) => (
   <button
     onClick={onClick}
     className={cn(
-      'w-40 px-2 py-1 duration-300 bg-purple-700 border border-purple-200 rounded-md tablet:w-auto hover:text-purple-700 hover:bg-purple-200 hover:border-purple-700',
+      'px-2 py-1 duration-300 bg-purple-700 border border-purple-200 rounded-md tablet:w-auto hover:text-purple-700 hover:bg-purple-200 hover:border-purple-700',
       className
     )}
   >
@@ -94,7 +94,7 @@ export default function Home(props) {
             <MenuItem text="О нас" href="#about" />
             <MenuItem text="Преимущества" href="#benefits" />
             <MenuItem text="Тарифы" href="#tarifs" />
-            <MenuItem text="Контакты" href="#contacts" />
+            {/* <MenuItem text="Контакты" href="#contacts" /> */}
           </ul>
         </div>
         <div
@@ -116,11 +116,11 @@ export default function Home(props) {
             Уроки, задания, проверка заданий и отчетность, все это и многое
             другое
           </H2>
-          {!user ?? (
+          {!user && (
             <Button
               className="mt-8"
               title="Зарегистрироваться и создать свой курс"
-              onClick={() => router.push('./login')}
+              onClick={() => router.push('./login?registration=true')}
             />
           )}
         </div>
@@ -200,10 +200,20 @@ export default function Home(props) {
         </BlockContainer>
         <BlockContainer id="tarifs" className="bg-gray-200">
           <H3>Тарифы</H3>
+          <P>
+            Проект находится в стадии разработки и тестирования. Размещение по
+            индивидуальным условиям.
+          </P>
         </BlockContainer>
-        <BlockContainer id="contacts" className="bg-gray-200">
+        {/* <BlockContainer id="contacts" className="bg-gray-200">
           <H3>Контакты</H3>
-        </BlockContainer>
+        </BlockContainer> */}
+        <div className="flex flex-col items-start px-10 py-5 text-sm font-thin text-white bg-black min-h-80 tablet:px-20">
+          <div>
+            © ИП Белинский Алексей Алексеевич, ИНН 245727560982, ОГРНИП
+            319246800103511
+          </div>
+        </div>
       </div>
     </>
   )

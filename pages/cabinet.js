@@ -36,26 +36,92 @@ import UsersCourses from '@models/UsersCourses'
 import dbConnect from '@utils/dbConnect'
 import Courses from '@models/Courses'
 import { MODES } from '@helpers/constants'
+import Chapters from '@models/Chapters'
+import Lectures from '@models/Lectures'
+import Tasks from '@models/Tasks'
 
-const CourseCard = ({ course }) => {
-  return <div className="bg-white"></div>
+const CourseCard = ({
+  course,
+  className,
+  chaptersCount,
+  lecturesCount,
+  tasksCount,
+}) => {
+  return (
+    <li className="border-t border-gray-400 last:border-b">
+      <Link href={`/course/${course._id}`}>
+        <a>
+          <div
+            className={cn(
+              'flex text-lg items-center gap-x-2 px-2 cursor-pointer py-1  w-full bg-white hover:bg-gray-200',
+              className
+            )}
+          >
+            <img
+              className="h-12 border border-gray-400 rounded-full"
+              src={course.image || '/img/UniPlatform.png'}
+              alt="course icon"
+              // width={48}
+              // height={48}
+            />
+            <div>
+              <div>{course.title || '[без названия]'}</div>
+              <div className="text-sm">
+                <span>Разделы:</span>
+                <span className="ml-1">{course.chaptersCount},</span>
+                <span className="ml-2">Лекции:</span>
+                <span className="ml-1">{course.lecturesCount},</span>
+                <span className="ml-2">Задания:</span>
+                <span className="ml-1">{course.tasksCount}</span>
+              </div>
+            </div>
+          </div>
+        </a>
+      </Link>
+    </li>
+  )
 }
 
-function CabinetPage({ courses, user, coursesStatus }) {
+const getIds = (arr = [], key = '_id') => arr.map((item) => item[key])
+
+function CabinetPage({
+  courses,
+  chapters,
+  lectures,
+  tasks,
+  user,
+  coursesRole,
+}) {
   // const { courses, user, userCourses } = props
 
   const router = useRouter()
 
-  console.log('userCourses', coursesStatus)
-  console.log('courses', courses)
-  const accessCourses = courses.filter(
-    (course) => coursesStatus[course._id] !== 'admin'
-  )
-  const adminCourses = courses.filter(
-    (course) => coursesStatus[course._id] === 'admin'
-  )
+  const coursesWithMoreInfo = courses.map((course) => {
+    const chaptersOfCourse = chapters.filter(
+      (chapter) => chapter.courseId === course._id
+    )
+    const chaptersOfCourseIds = getIds(chaptersOfCourse)
+    const lecturesOfCourse = lectures.filter((lecture) =>
+      chaptersOfCourseIds.includes(lecture.chapterId)
+    )
+    const lecturesOfCourseIds = getIds(lecturesOfCourse)
+    const tasksOfCourse = tasks.filter((task) =>
+      lecturesOfCourseIds.includes(task.lectureId)
+    )
+    return {
+      ...course,
+      chaptersCount: chaptersOfCourseIds.length,
+      lecturesCount: lecturesOfCourse.length,
+      tasksCount: tasksOfCourse.length,
+    }
+  })
 
-  console.log('accessCourses', accessCourses)
+  const accessCourses = coursesWithMoreInfo.filter(
+    (course) => coursesRole[course._id] !== 'admin'
+  )
+  const adminCourses = coursesWithMoreInfo.filter(
+    (course) => coursesRole[course._id] === 'admin'
+  )
 
   return (
     <>
@@ -72,14 +138,13 @@ function CabinetPage({ courses, user, coursesStatus }) {
             {accessCourses.length > 0 ? (
               <ul className="w-full px-2">
                 {accessCourses.map((course) => (
-                  <li
+                  <CourseCard
                     key={course._id}
-                    className="w-full my-1 hover:bg-gray-200"
-                  >
-                    <Link href={`/course/${course._id}`}>
-                      <a>{course.title}</a>
-                    </Link>
-                  </li>
+                    course={course}
+                    chaptersCount={course.chaptersCount}
+                    lecturesCount={course.lecturesCount}
+                    tasksCount={course.tasksCount}
+                  />
                 ))}
               </ul>
             ) : (
@@ -87,18 +152,11 @@ function CabinetPage({ courses, user, coursesStatus }) {
             )}
           </div>
           <H2>Мои курсы</H2>
-          <div className="w-full px-2">
+          <div className="w-full">
             {adminCourses.length > 0 ? (
               <ul className="w-full">
                 {adminCourses.map((course) => (
-                  <li
-                    key={course._id}
-                    className="w-full my-1 hover:bg-gray-200"
-                  >
-                    <Link href={`/course/${course._id}`}>
-                      <a>{course.title}</a>
-                    </Link>
-                  </li>
+                  <CourseCard key={course._id} course={course} />
                 ))}
               </ul>
             ) : (
@@ -169,23 +227,68 @@ export const getServerSideProps = async (context) => {
     await dbConnect()
 
     // Получаем список Id курсов доступных для пользователя
-    console.log('session.user._id', session.user._id)
+
     const userCourses = await UsersCourses.find({ userId: session.user._id })
-    console.log('userCourses', userCourses)
-    const coursesIds = userCourses.map((userCourse) => userCourse.courseId)
-    console.log('coursesIds', coursesIds)
+
+    const coursesIds = getIds(userCourses, 'courseId')
+
     const courses = await Courses.find({
       _id: { $in: coursesIds },
     })
-    const coursesStatus = {}
+    const coursesRole = {}
     userCourses.forEach((userCourse) => {
-      coursesStatus[userCourse.courseId] = userCourse.status
+      coursesRole[userCourse.courseId] = userCourse.role
     })
+
+    const chapters = JSON.parse(
+      JSON.stringify(
+        await Chapters.find({
+          courseId: { $in: coursesIds },
+        })
+      )
+    )
+
+    if (!chapters) {
+      return {
+        notFound: true,
+      }
+    }
+
+    const lectures = JSON.parse(
+      JSON.stringify(
+        await Lectures.find({
+          chapterId: { $in: getIds(chapters) },
+        })
+      )
+    )
+
+    if (!lectures) {
+      return {
+        notFound: true,
+      }
+    }
+
+    const tasks = JSON.parse(
+      JSON.stringify(
+        await Tasks.find({
+          lectureId: { $in: getIds(lectures) },
+        })
+      )
+    )
+
+    if (!tasks) {
+      return {
+        notFound: true,
+      }
+    }
 
     return {
       props: {
         courses: JSON.parse(JSON.stringify(courses)),
-        coursesStatus,
+        coursesRole,
+        chapters,
+        lectures,
+        tasks,
         user: session?.user ? session.user : null,
       },
     }
@@ -193,7 +296,10 @@ export const getServerSideProps = async (context) => {
     return {
       props: {
         courses: [],
-        coursesStatus: {},
+        coursesRole: {},
+        chapters: [],
+        lectures: [],
+        tasks: [],
         user: session?.user ? session.user : null,
       },
       // notFound: true,

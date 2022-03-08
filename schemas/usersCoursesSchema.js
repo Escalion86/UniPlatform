@@ -9,7 +9,7 @@ const usersCoursesSchema = {
     required: [true, 'Укажите курс'],
     default: '',
   },
-  status: {
+  role: {
     type: String,
     default: '',
   },

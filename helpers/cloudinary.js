@@ -1,6 +1,6 @@
 import { CLOUDINARY_FOLDER } from './constants'
 
-export const deleteImage = async (imagePublicId, resource_type = 'image') => {
+export const deleteImage = async (publicId, resource_type = 'image') => {
   // const { id } = router.query
 
   try {
@@ -10,7 +10,7 @@ export const deleteImage = async (imagePublicId, resource_type = 'image') => {
       //   Accept: contentType,
       //   'Content-Type': contentType,
       // },
-      body: JSON.stringify({ imagePublicId, resource_type }),
+      body: JSON.stringify({ publicId, resource_type }),
     })
 
     // Throw error with status code in case Fetch API req failed
@@ -126,5 +126,34 @@ export const sendVideo = async (
         }
       })
       .catch((err) => console.error('ERROR', err))
+  }
+}
+
+export const deleteVideo = async (publicId, resource_type = 'video') => {
+  // const { id } = router.query
+
+  try {
+    const res = await fetch('/api/cloudimages', {
+      method: 'DELETE',
+      // headers: {
+      //   Accept: contentType,
+      //   'Content-Type': contentType,
+      // },
+      body: JSON.stringify({ publicId, resource_type }),
+    })
+
+    // Throw error with status code in case Fetch API req failed
+    if (!res.ok) {
+      throw new Error(res.status)
+    }
+    return res
+
+    // const { data } = await res.json()
+    // console.log(`data`, data)
+    // mutate(url, data, false) // Update the local data without a revalidation
+    // afterConfirm()
+  } catch (error) {
+    return error
+    // setMessage('Failed to update on ' + url)
   }
 }

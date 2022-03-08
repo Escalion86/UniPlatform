@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import cn from 'classnames'
 import { deleteData, postData, putData } from '@helpers/CRUD'
-import { deleteImage, sendVideo } from '@helpers/cloudinary'
+import { deleteImage, sendVideo, deleteVideo } from '@helpers/cloudinary'
 import LoadingSpinner from '@components/LoadingSpinner'
 
 import VideoPlayer from '@components/VideoPlayer'
@@ -14,6 +14,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { MODES } from '@helpers/constants'
 import EditableText from '@components/EditableText'
 import Task from '@components/Task'
+import InputImage from '@components/InputImage'
 
 const LectureContent = ({
   course,
@@ -82,24 +83,28 @@ const LectureContent = ({
     hiddenFileInput.current.click()
   }
 
-  const deleteVideo = async () => {
-    if (isOpenedCourse && course.videoUrl)
-      await deleteImage(
+  const deleteVideoFunc = async () => {
+    if (isOpenedCourse && course.videoUrl) {
+      const res = await deleteVideo(
         `obnimisharik_courses_dev/courses/${course._id}/video`,
         'video'
       )
-    if (!isOpenedCourse && activeLecture.videoUrl)
-      await deleteImage(
+      if (res.status === 200) saveCourse({ videoUrl: '' })
+    }
+    if (!isOpenedCourse && activeLecture.videoUrl) {
+      const res = await deleteVideo(
         `obnimisharik_courses_dev/lectures/${activeLecture._id}/video`,
         'video'
       )
+      if (res.status === 200) saveLecture({ videoUrl: '' })
+    }
   }
 
-  const onChangeFile = async (newFile) => {
+  const onChangeVideo = async (newFile) => {
     if (newFile) {
       if (fileSizeValidator(newFile)) {
         setIsVideoSending(true)
-        await deleteVideo()
+        await deleteVideoFunc()
         sendVideo(
           newFile,
           (videoUrl) => {
@@ -228,7 +233,7 @@ const LectureContent = ({
             <input
               type="file"
               ref={hiddenFileInput}
-              onChange={(e) => onChangeFile(e.target.files[0])}
+              onChange={(e) => onChangeVideo(e.target.files[0])}
               style={{ display: 'none' }}
               accept="video/mp4,video/x-m4v,video/*"
               // accept="image/jpeg,image/png"
@@ -251,7 +256,7 @@ const LectureContent = ({
                 {videoUrl && (
                   <button
                     className="px-2 py-1 bg-gray-200 border border-gray-400 hover:bg-gray-400"
-                    onClick={deleteVideo}
+                    onClick={deleteVideoFunc}
                   >
                     Удалить видео
                   </button>
@@ -261,6 +266,21 @@ const LectureContent = ({
                 </div>
               </div>
             )}
+            <InputImage
+              onChange={async (image) => {
+                if (image) {
+                  await saveCourse({ image })
+                }
+              }}
+              onDelete={async () => {
+                await saveCourse({ image: '' })
+                refreshPage()
+              }}
+              label="Иконка курса"
+              directory="courses"
+              image={course.image}
+              imageName={`${course._id}/image`}
+            />
           </div>
         )}
 

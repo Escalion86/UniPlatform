@@ -2,7 +2,7 @@ import Divider from '@components/Divider'
 import { signOut } from 'next-auth/react'
 import Link from 'next/link'
 
-const Header = ({ user, title = '', titleLink = '/' }) => {
+const Header = ({ user, title = '', titleLink = '/', icon }) => {
   return (
     <div
       className="relative flex items-center justify-end w-full h-16 px-3 text-white bg-black header"
@@ -13,10 +13,11 @@ const Header = ({ user, title = '', titleLink = '/' }) => {
           <Link href="/">
             <a>
               <img
-                src="/img/UniPlatform.png"
-                alt="balloon"
-                width={40}
-                height={40}
+                className="h-12 rounded-full"
+                src={icon || '/img/UniPlatform.png'}
+                alt="uniplatform"
+                // width={48}
+                // height={48}
               />
             </a>
           </Link>

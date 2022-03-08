@@ -123,6 +123,7 @@ function CoursePage(props) {
           user={user}
           title={course.title}
           titleLink={`/course/${course._id}/general`}
+          icon={course.image}
         />
         {/* ----------------------------- SIDEBAR ------------------------------- */}
         {loading && <LoadingContent />}
@@ -286,7 +287,7 @@ export const getServerSideProps = async (context) => {
     const userCourseAccess = session?.user
       ? usersOfCourse.find(
           (userCourse) => userCourse.userId === session.user._id
-        )?.status
+        )?.role
       : null
 
     // Если не нашли, то значит у пользователя нет доступа к курсу
@@ -386,7 +387,7 @@ export const getServerSideProps = async (context) => {
         email: user.email,
         statusInCourse: usersOfCourse.find(
           (userCourse) => userCourse.userId === user._id
-        ).status,
+        ).role,
       }
     })
 

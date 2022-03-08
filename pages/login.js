@@ -108,8 +108,10 @@ const generalColor = fullConfig.theme.colors.general
 const Login = () => {
   const router = useRouter()
   const { data: session, status } = useSession()
-  const { courseId, lectureId } = router.query
-  const [isRegistrationProcess, setIsRegistrationProcess] = useState(false)
+  const { courseId, lectureId, registration } = router.query
+  const [isRegistrationProcess, setIsRegistrationProcess] = useState(
+    registration === 'true'
+  )
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [passwordRepeat, setPasswordRepeat] = useState('')
