@@ -20,6 +20,7 @@ import { MODES, TASK_ICON_STATUSES } from '@helpers/constants'
 import { postData, deleteData, putData } from '@helpers/CRUD'
 
 import cn from 'classnames'
+import { taskStatus as taskStatusFunc } from '@helpers/status'
 
 const Task = ({
   task,
@@ -75,17 +76,7 @@ const Task = ({
   })
 
   const answersOfTaskStatuses = answersOfTask.map((answer) => answer.status)
-  const taskStatus =
-    answersOfTaskStatuses.length === 0
-      ? 'none'
-      : answersOfTaskStatuses.includes('sended')
-      ? 'sended'
-      : answersOfTaskStatuses.every((status) => status === 'confirmed')
-      ? 'confirmed'
-      : !answersOfTaskStatuses.includes('sended') &&
-        answersOfTaskStatuses.includes('declined')
-      ? 'declined'
-      : 'none'
+  const taskStatus = taskStatusFunc(task._id, answersOfTask)
 
   const answersWithStatusSendedCount = answersOfTaskStatuses.filter(
     (status) => status === 'sended'
@@ -273,6 +264,7 @@ const Task = ({
                     answer={answer}
                     mode={mode}
                     refreshPage={refreshPage}
+                    user={user}
                   />
                 ))}
               </div>

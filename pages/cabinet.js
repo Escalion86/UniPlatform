@@ -39,6 +39,8 @@ import { MODES } from '@helpers/constants'
 import Chapters from '@models/Chapters'
 import Lectures from '@models/Lectures'
 import Tasks from '@models/Tasks'
+import Answers from '@models/Answers'
+import getIds from '@helpers/getIds'
 
 const CourseCard = ({
   course,
@@ -82,13 +84,12 @@ const CourseCard = ({
   )
 }
 
-const getIds = (arr = [], key = '_id') => arr.map((item) => item[key])
-
 function CabinetPage({
   courses,
   chapters,
   lectures,
   tasks,
+  answers,
   user,
   coursesRole,
 }) {
@@ -232,9 +233,13 @@ export const getServerSideProps = async (context) => {
 
     const coursesIds = getIds(userCourses, 'courseId')
 
-    const courses = await Courses.find({
-      _id: { $in: coursesIds },
-    })
+    const courses = JSON.parse(
+      JSON.stringify(
+        await Courses.find({
+          _id: { $in: coursesIds },
+        })
+      )
+    )
     const coursesRole = {}
     userCourses.forEach((userCourse) => {
       coursesRole[userCourse.courseId] = userCourse.role
@@ -282,13 +287,24 @@ export const getServerSideProps = async (context) => {
       }
     }
 
+    const answers = JSON.parse(
+      JSON.stringify(await Answers.find({ taskId: { $in: getIds(tasks) } }))
+    )
+
+    if (!answers) {
+      return {
+        notFound: true,
+      }
+    }
+
     return {
       props: {
-        courses: JSON.parse(JSON.stringify(courses)),
+        courses,
         coursesRole,
         chapters,
         lectures,
         tasks,
+        answers,
         user: session?.user ? session.user : null,
       },
     }
@@ -300,6 +316,7 @@ export const getServerSideProps = async (context) => {
         chapters: [],
         lectures: [],
         tasks: [],
+        answers: [],
         user: session?.user ? session.user : null,
       },
       // notFound: true,

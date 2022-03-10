@@ -18,7 +18,10 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import cn from 'classnames'
 import { MODES, TASK_ICON_STATUSES } from '@helpers/constants'
-import { modifyRouteRegex } from 'next/dist/lib/load-custom-routes'
+import {
+  lectureStatusByTasksStatusesArray,
+  tasksStatuses,
+} from '@helpers/status'
 
 const Lectures = ({
   courseId,
@@ -41,40 +44,9 @@ const Lectures = ({
         const tasksOfLectureIds = lectureHaveTasks
           ? tasksOfLecture.map((task) => task._id)
           : []
-        const answersOfLecture = lectureHaveTasks
-          ? answers.filter((answer) =>
-              tasksOfLectureIds.includes(answer.taskId)
-            )
-          : []
-        // const confirmedTasks = tasksOfLecture.filter((task) =>
-        //   answersOfLecture.find(
-        //     (answer) => answer.taskId === task._id && answer.status === 'confirmed'
-        //   )
-        // )
 
-        const tasksStatusesArray = tasksOfLecture.map((task) => {
-          if (
-            answersOfLecture.find(
-              (answer) =>
-                answer.taskId === task._id && answer.status === 'confirmed'
-            )
-          )
-            return 'confirmed'
-          if (
-            answersOfLecture.find(
-              (answer) =>
-                answer.taskId === task._id && answer.status === 'sended'
-            )
-          )
-            return 'sended'
-          if (
-            answersOfLecture.find(
-              (answer) =>
-                answer.taskId === task._id && answer.status === 'declined'
-            )
-          )
-            return 'declined'
-        })
+        const tasksStatusesArray = tasksStatuses(tasksOfLecture, answers)
+        const status = lectureStatusByTasksStatusesArray(tasksStatusesArray)
 
         const deleteLecture = async (id) => {
           await deleteData(`/api/lectures/${id}`)
@@ -130,21 +102,9 @@ const Lectures = ({
               {mode !== MODES.TEACHER && lectureHaveTasks && (
                 <div
                   className={cn('relative flex items-center justify-center', {
-                    'text-secondary':
-                      mode === MODES.STUDENT &&
-                      lectureHaveTasks &&
-                      tasksStatusesArray.includes('sended') &&
-                      !tasksStatusesArray.includes('declined'),
-                    'text-success':
-                      mode === MODES.STUDENT &&
-                      lectureHaveTasks &&
-                      tasksStatusesArray.every(
-                        (status) => status === 'confirmed'
-                      ),
-                    'text-danger':
-                      mode === MODES.STUDENT &&
-                      lectureHaveTasks &&
-                      tasksStatusesArray.includes('declined'),
+                    'text-secondary': status === 'sended',
+                    'text-success': status === 'confirmed',
+                    'text-danger': status === 'declined',
                   })}
                   style={{ width: 20 }}
                 >

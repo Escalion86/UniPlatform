@@ -1,7 +1,12 @@
-const ContentWrapper = ({ children }) => {
+import cn from 'classnames'
+
+const ContentWrapper = ({ children, className }) => {
   return (
     <div
-      className="flex flex-col w-full overflow-scroll overflow-x-hidden"
+      className={cn(
+        'flex flex-col w-full overflow-scroll overflow-x-hidden',
+        className
+      )}
       style={{ gridArea: 'content' }}
     >
       {children}

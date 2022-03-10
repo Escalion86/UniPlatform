@@ -45,6 +45,8 @@ import Chapters from '@models/Chapters'
 import Tasks from '@models/Tasks'
 import Answers from '@models/Answers'
 import UsersCourses from '@models/UsersCourses'
+import getIds from '@helpers/getIds'
+import Link from 'next/link'
 
 function CoursePage(props) {
   const {
@@ -59,6 +61,7 @@ function CoursePage(props) {
     userCourseAccess = MODES.STUDENT,
     userViewedLecturesIds,
     usersInCourse,
+    page,
   } = props
 
   const [isSideOpen, setIsSideOpen] = useState(true)
@@ -106,6 +109,45 @@ function CoursePage(props) {
       color: '#2A323B',
     },
   ]
+
+  const admins = usersInCourse.filter(
+    (user) => user.statusInCourse === MODES.ADMIN
+  )
+  const teachers = usersInCourse.filter(
+    (user) => user.statusInCourse === MODES.TEACHER
+  )
+  const students = usersInCourse.filter(
+    (user) => user.statusInCourse === MODES.STUDENT
+  )
+
+  const UserCard = ({ user }) => (
+    <li className="border-t border-gray-400 last:border-b">
+      <Link href={`/user/${user._id}`}>
+        <a>
+          <div className="flex items-center w-full px-2 py-1 text-lg bg-white cursor-pointer gap-x-2 hover:bg-gray-200">
+            <img
+              className="h-12 border border-gray-400 rounded-full"
+              src={user.image || '/img/users/male_gray.png'}
+              alt="course icon"
+              // width={48}
+              // height={48}
+            />
+            <div>
+              <div>{user.name || '[без названия]'}</div>
+              <div className="text-sm">
+                {/* <span>EMail:</span> */}
+                <span className="ml-1">{user.email}</span>
+                {/* <span className="ml-2">Лекции:</span>
+                <span className="ml-1">{course.lecturesCount},</span>
+                <span className="ml-2">Задания:</span>
+                <span className="ml-1">{course.tasksCount}</span> */}
+              </div>
+            </div>
+          </div>
+        </a>
+      </Link>
+    </li>
+  )
 
   return (
     <>
@@ -161,20 +203,52 @@ function CoursePage(props) {
                 />
               )}
               {activeLecture && ( */}
-              <LectureContent
-                course={course}
-                activeChapter={activeChapter}
-                activeLecture={activeLecture}
-                tasks={activeLectureTasks}
-                answers={answers}
-                setMode={setMode}
-                mode={mode}
-                userCourseAccess={userCourseAccess}
-                user={user}
-                isSideOpen={isSideOpen}
-                refreshPage={refreshPage}
-                setIsSideOpen={setIsSideOpen}
-              />
+              {(activeLecture || page === 'general') && (
+                <LectureContent
+                  course={course}
+                  activeChapter={activeChapter}
+                  activeLecture={activeLecture}
+                  tasks={activeLectureTasks}
+                  answers={answers}
+                  setMode={setMode}
+                  mode={mode}
+                  userCourseAccess={userCourseAccess}
+                  user={user}
+                  isSideOpen={isSideOpen}
+                  refreshPage={refreshPage}
+                  setIsSideOpen={setIsSideOpen}
+                />
+              )}
+              {page === 'users' && (
+                <ContentWrapper className="py-2">
+                  <div className="mx-2">Администраторы:</div>
+                  <ul className="w-full">
+                    {admins.map((user) => (
+                      <UserCard key={user._id} user={user} />
+                    ))}
+                  </ul>
+                  {teachers.length > 0 && (
+                    <>
+                      <div className="mx-2">Преподаватели:</div>
+                      <ul className="w-full">
+                        {teachers.map((user) => (
+                          <UserCard key={user._id} user={user} />
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                  {students.length > 0 && (
+                    <>
+                      <div className="mx-2">Студенты:</div>
+                      <ul className="w-full">
+                        {students.map((user) => (
+                          <UserCard key={user._id} user={user} />
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </ContentWrapper>
+              )}
               {(userCourseAccess === MODES.ADMIN ||
                 userCourseAccess === MODES.TEACHER) && (
                 <Fab
@@ -234,8 +308,6 @@ const arrayToObjId = (arr, idKey = '_id') => {
   })
   return obj
 }
-
-const getIds = (arr = [], key = '_id') => arr.map((item) => item[key])
 
 export const getServerSideProps = async (context) => {
   const session = await getSession({ req: context.req })
@@ -328,11 +400,16 @@ export const getServerSideProps = async (context) => {
     const activeLecture =
       lectureId &&
       lectureId !== 'general' &&
+      lectureId !== 'users' &&
       lectures.find((lection) => lection._id === lectureId)
 
     const isActiveLectionIdExist = !!activeLecture?._id
 
-    if (!isActiveLectionIdExist && lectureId !== 'general') {
+    if (
+      !isActiveLectionIdExist &&
+      lectureId !== 'general' &&
+      lectureId !== 'users'
+    ) {
       return {
         notFound: true,
       }
@@ -385,6 +462,7 @@ export const getServerSideProps = async (context) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        image: user.image,
         statusInCourse: usersOfCourse.find(
           (userCourse) => userCourse.userId === user._id
         ).role,
@@ -396,6 +474,9 @@ export const getServerSideProps = async (context) => {
       return {
         ...answer,
         user: usersInCourse.find((user) => user._id === answer.userId),
+        teacher: answer.teacherId
+          ? usersInCourse.find((user) => user._id === answer.teacherId)
+          : null,
       }
     })
 
@@ -487,6 +568,7 @@ export const getServerSideProps = async (context) => {
         user: session?.user ? session.user : null,
         userCourseAccess,
         usersInCourse,
+        page: activeLecture ? null : lectureId,
       },
     }
   } catch {

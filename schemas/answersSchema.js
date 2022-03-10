@@ -13,6 +13,10 @@ const answersSchema = {
     type: String,
     default: '',
   },
+  teacherComment: {
+    type: String,
+    default: '',
+  },
   answer: {
     type: String,
     maxlength: [

@@ -15,6 +15,9 @@ import { MODES } from '@helpers/constants'
 import EditableText from '@components/EditableText'
 import Task from '@components/Task'
 import InputImage from '@components/InputImage'
+import Button from '@components/Button'
+import Link from 'next/link'
+import ButtonLink from '@components/ButtonLink'
 
 const LectureContent = ({
   course,
@@ -266,21 +269,23 @@ const LectureContent = ({
                 </div>
               </div>
             )}
-            <InputImage
-              onChange={async (image) => {
-                if (image) {
-                  await saveCourse({ image })
-                }
-              }}
-              onDelete={async () => {
-                await saveCourse({ image: '' })
-                refreshPage()
-              }}
-              label="Иконка курса"
-              directory="courses"
-              image={course.image}
-              imageName={`${course._id}/image`}
-            />
+            {isOpenedCourse && (
+              <InputImage
+                onChange={async (image) => {
+                  if (image) {
+                    await saveCourse({ image })
+                  }
+                }}
+                onDelete={async () => {
+                  await saveCourse({ image: '' })
+                  refreshPage()
+                }}
+                label="Иконка курса"
+                directory="courses"
+                image={course.image}
+                imageName={`${course._id}/image`}
+              />
+            )}
           </div>
         )}
 
@@ -399,35 +404,46 @@ const LectureContent = ({
         <Divider light />
         {/* <div className="text-base">{activeLecture.description}</div> */}
         {mode === MODES.ADMIN ? (
-          <EditableTextarea
-            className="border-b border-purple-600 outline-none"
-            // innerRef={this.contentEditable}
-            html={
-              isOpenedCourse ? course.description : activeLecture.description
-            } // innerHTML of the editable div
-            disabled={false} // use true to disable editing
-            // onChange={handleChangeDescription} // handle innerHTML change
-            // html={description.current}
-            // onBlur={() => {
-            //   if (isOpenedCourse) {
-            //     saveCourse({ description: description.current })
-            //   } else {
-            //     saveLecture({ description: description.current })
-            //   }
-            // }}
-            onSave={(description) => {
-              if (isOpenedCourse) {
-                saveCourse({ description })
-              } else {
-                saveLecture({ description })
+          <>
+            <EditableTextarea
+              className="border-b border-purple-600 outline-none"
+              // innerRef={this.contentEditable}
+              html={
+                isOpenedCourse ? course.description : activeLecture.description
+              } // innerHTML of the editable div
+              disabled={false} // use true to disable editing
+              // onChange={handleChangeDescription} // handle innerHTML change
+              // html={description.current}
+              // onBlur={() => {
+              //   if (isOpenedCourse) {
+              //     saveCourse({ description: description.current })
+              //   } else {
+              //     saveLecture({ description: description.current })
+              //   }
+              // }}
+              onSave={(description) => {
+                if (isOpenedCourse) {
+                  saveCourse({ description })
+                } else {
+                  saveLecture({ description })
+                }
+              }}
+              placeholder={
+                isOpenedCourse ? 'Описание курса...' : 'Описание лекции...'
               }
-            }}
-            placeholder={
-              isOpenedCourse ? 'Описание курса...' : 'Описание лекции...'
-            }
-            readonly={mode !== MODES.ADMIN}
-            // tagName='article' // Use a custom HTML tag (uses a div by default)
-          />
+              readonly={mode !== MODES.ADMIN}
+              // tagName='article' // Use a custom HTML tag (uses a div by default)
+            />
+            {isOpenedCourse && (
+              <>
+                <Divider light />
+                <ButtonLink
+                  name="Настройки пользователей"
+                  href={`/course/${course._id}/users`}
+                />
+              </>
+            )}
+          </>
         ) : (
           <div
             dangerouslySetInnerHTML={{

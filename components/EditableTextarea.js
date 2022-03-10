@@ -61,6 +61,7 @@ const EditableTextarea = ({
   uncontrolled = true,
   btnSaveName = 'Сохранить',
   disableUndo = false,
+  title = 'nerker',
 }) => {
   const [textHtml, setTextHtml] = useState(html)
   const [isSaveProcess, setIsSaveProcess] = useState(false)
@@ -81,11 +82,14 @@ const EditableTextarea = ({
   return (
     <div>
       {readonly ? (
-        <div
-          dangerouslySetInnerHTML={{
-            __html: textHtml,
-          }}
-        />
+        <div>
+          {title && <div className="font-bold">{title}</div>}
+          <div
+            dangerouslySetInnerHTML={{
+              __html: textHtml,
+            }}
+          />
+        </div>
       ) : (
         <div className="p-2 bg-white border border-gray-300">
           <div className="flex flex-wrap gap-1">
