@@ -3,15 +3,23 @@ const nodemailer = require('nodemailer')
 const emailSend = (to, subject, html) => {
   return new Promise((res, rej) => {
     const transporter = nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE,
+      // service: process.env.EMAIL_SERVICE,
+      // auth: {
+      //   user: process.env.EMAIL_USERNAME,
+      //   pass: process.env.EMAIL_PASSWORD,
+      // },
+      pool: true,
+      host: 'mail.hosting.reg.ru',
+      port: 465,
+      secure: true, // use TLS
       auth: {
-        user: process.env.EMAIL_USERNAME,
-        pass: process.env.EMAIL_PASSWORD,
+        user: 'info@uniplatform.ru',
+        pass: 'Magister86',
       },
     })
 
     const message = {
-      from: process.env.EMAIL_USERNAME,
+      from: 'info@uniplatform.ru', //process.env.EMAIL_USERNAME,
       to,
       subject,
       html,

@@ -47,6 +47,11 @@ import Answers from '@models/Answers'
 import UsersCourses from '@models/UsersCourses'
 import getIds from '@helpers/getIds'
 import Link from 'next/link'
+import Modal from '@layouts/modals/Modal'
+import { modalsAtom, modalsFuncAtom } from '@state/atoms'
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
+import modalsFuncGenerator from '@layouts/modals/modalsFuncGenerator'
+import Button from '@components/Button'
 
 function CoursePage(props) {
   const {
@@ -63,9 +68,42 @@ function CoursePage(props) {
     usersInCourse,
     page,
   } = props
+  const [modals, setModals] = useRecoilState(modalsAtom)
+
+  const setModalsFunc = useSetRecoilState(modalsFuncAtom)
+
+  useEffect(() => {
+    setModalsFunc(modalsFuncGenerator(setModals))
+    // const addModal = (props) => setModals((modals) => [...modals, props])
+
+    // setModalsFunc({
+    //   addModal,
+    //   confirmModal: ({
+    //     title = 'Отмена изменений',
+    //     text = 'Вы уверены, что хотите закрыть окно без сохранения изменений?',
+    //     onConfirm,
+    //   }) => {
+    //     addModal({
+    //       title,
+    //       text,
+    //       onConfirm,
+    //     })
+    //   },
+    //   customModal: ({ title, text, onConfirm, Children }) => {
+    //     addModal({
+    //       title,
+    //       text,
+    //       onConfirm,
+    //       Children,
+    //     })
+    //   },
+    // })
+  }, [])
 
   const [isSideOpen, setIsSideOpen] = useState(true)
   const [mode, setMode] = useState(userCourseAccess)
+
+  const modalsFunc = useRecoilValue(modalsFuncAtom)
 
   const [loading, setLoading] = useState()
 
@@ -189,20 +227,6 @@ function CoursePage(props) {
             />
             {/* ----------------------------- CONTENT ------------------------------- */}
             <ContentWrapper>
-              {/* {!activeLecture && (
-                <CourseContent
-                  course={course}
-                  activeChapter={activeChapter}
-                  activeLecture={activeLecture}
-                  setEditMode={setEditMode}
-                  editMode={editMode}
-                  userCourseAccess={userCourseAccess}
-                  isSideOpen={isSideOpen}
-                  refreshPage={refreshPage}
-                  setIsSideOpen={setIsSideOpen}
-                />
-              )}
-              {activeLecture && ( */}
               {(activeLecture || page === 'general') && (
                 <LectureContent
                   course={course}
@@ -247,6 +271,10 @@ function CoursePage(props) {
                       </ul>
                     </>
                   )}
+                  <Button
+                    name="Пригласить пользователей на курс"
+                    onClick={() => modalsFunc.addUserToCourse({ course })}
+                  />
                 </ContentWrapper>
               )}
               {(userCourseAccess === MODES.ADMIN ||
@@ -265,6 +293,9 @@ function CoursePage(props) {
             </ContentWrapper>
           </>
         )}
+        {modals.map((modalProps, index) => (
+          <Modal {...modalProps} index={index} key={'modal' + index} />
+        ))}
       </CourseWrapper>
     </>
   )

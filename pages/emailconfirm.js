@@ -21,7 +21,7 @@ const EmailConfirm = ({ user, error, success }) => {
     if (success) setInterval(() => setCounter((state) => state - 1), 1000)
   }, [success])
 
-  if (counter === 0) router.push('/login')
+  if (counter === 0) router.push(`/login?email=${user.email}`)
   return (
     <div className="box-border w-screen h-screen overflow-hidden">
       <SvgWave className="fixed top-0 left-0 hidden w-auto h-full laptop:block -z-10" />
@@ -46,8 +46,9 @@ const EmailConfirm = ({ user, error, success }) => {
           {!error && !success && 'Проверка данных...'}
           {error}
           {success}
-          {success &&
-            `Вы будете автоматически перенаправлены на страницу авторизации через... ${counter}`}
+          {success
+            ? `Вы будете автоматически перенаправлены на страницу авторизации через... ${counter}`
+            : null}
         </div>
       </div>
     </div>

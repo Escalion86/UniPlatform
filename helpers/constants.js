@@ -57,7 +57,15 @@ export const MODES = Object.freeze({
   ADMIN: 'admin',
   TEACHER: 'teacher',
   STUDENT: 'student',
+  VIEWER: 'viewer',
 })
+
+export const MODES_NAMES = {
+  [MODES.ADMIN]: 'Администратор',
+  [MODES.TEACHER]: 'Преподаватель',
+  [MODES.STUDENT]: 'Студент',
+  [MODES.VIEWER]: 'Наблюдатель',
+}
 
 export const TASK_ICON_STATUSES = {
   none: {

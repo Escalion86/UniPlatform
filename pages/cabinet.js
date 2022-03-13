@@ -41,6 +41,7 @@ import Lectures from '@models/Lectures'
 import Tasks from '@models/Tasks'
 import Answers from '@models/Answers'
 import getIds from '@helpers/getIds'
+import EmailInvitationCourses from '@models/EmailInvitationCourses'
 
 const CourseCard = ({
   course,
@@ -135,9 +136,9 @@ function CabinetPage({
         <Header user={user} title="Кабинет" titleLink={`/cabinet`} />
         <ContentWrapper>
           <H2>Доступные курсы</H2>
-          <div className="w-full px-2">
+          <div className="w-full">
             {accessCourses.length > 0 ? (
-              <ul className="w-full px-2">
+              <ul className="w-full">
                 {accessCourses.map((course) => (
                   <CourseCard
                     key={course._id}
@@ -227,9 +228,33 @@ export const getServerSideProps = async (context) => {
   try {
     await dbConnect()
 
+    // Сначала проверяем - возможно было приглашение на курс
+    const emailInvitationCourses = await EmailInvitationCourses.find({
+      email: session.user.email,
+    })
+    // Если приглашение было, то сначала создаем пользователя как участника курса и только потом удаляем приглашение
+    if (emailInvitationCourses.length > 0) {
+      for (let i = 0; i < emailInvitationCourses.length; i++) {
+        const checkUserInCourse = await UsersCourses.find({
+          userId: session.user._id,
+          courseId: emailInvitationCourses[i].courseId,
+        })
+        if (checkUserInCourse.length === 0) {
+          await UsersCourses.create({
+            userId: session.user._id,
+            courseId: emailInvitationCourses[i].courseId,
+            role: emailInvitationCourses[i].role,
+          })
+        }
+      }
+      await EmailInvitationCourses.deleteMany({ email: session.user.email })
+    }
+
     // Получаем список Id курсов доступных для пользователя
 
     const userCourses = await UsersCourses.find({ userId: session.user._id })
+
+    console.log('emailInvitationCourses', emailInvitationCourses)
 
     const coursesIds = getIds(userCourses, 'courseId')
 
@@ -240,6 +265,7 @@ export const getServerSideProps = async (context) => {
         })
       )
     )
+
     const coursesRole = {}
     userCourses.forEach((userCourse) => {
       coursesRole[userCourse.courseId] = userCourse.role

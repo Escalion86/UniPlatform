@@ -104,7 +104,7 @@ const sendVideo = async (video) => {
     console.log('-------------------------------- send video')
 
     yandexCloud
-      .uploadFile(video, config, 'yandex')
+      .uploadFile(video, config)
       .then((data) => console.log(data))
       .catch((err) => console.error(err))
 

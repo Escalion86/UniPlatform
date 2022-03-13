@@ -7,6 +7,13 @@ import Head from 'next/head'
 import { SessionProvider } from 'next-auth/react'
 import { CloudinaryContext } from 'cloudinary-react'
 import Script from 'next/script'
+import {
+  RecoilRoot,
+  atom,
+  selector,
+  useRecoilState,
+  useRecoilValue,
+} from 'recoil'
 
 // import { createStore, applyMiddleware, compose } from 'redux'
 // import thunk from 'redux-thunk'
@@ -53,7 +60,9 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }) {
       <SessionProvider session={session} refetchInterval={5 * 60}>
         {/* <Provider store={store}> */}
         <CloudinaryContext cloudName="escalion-ru">
-          <Component {...pageProps} />
+          <RecoilRoot>
+            <Component {...pageProps} />
+          </RecoilRoot>
         </CloudinaryContext>
         {/* </Provider> */}
       </SessionProvider>

@@ -1,5 +1,5 @@
 import { signIn, signOut, useSession } from 'next-auth/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import SvgWave from 'svg/SvgWave'
 import SvgLogin from 'svg/SvgLogin'
@@ -28,6 +28,7 @@ const Input = ({
   hidden,
   error = false,
   tabIndex,
+  inputRef,
 }) => {
   const [focused, setFocused] = useState(false)
   const onFocus = () => setFocused(true)
@@ -73,6 +74,7 @@ const Input = ({
             {name}
           </h5>
           <input
+            ref={inputRef}
             className="absolute w-full h-full top-0 left-0 border-none outline-none bg-transparent py-0.5 px-1 text-lg text-gray-600"
             type={type}
             onFocus={onFocus}
@@ -108,32 +110,44 @@ const generalColor = fullConfig.theme.colors.general
 const Login = () => {
   const router = useRouter()
   const { data: session, status } = useSession()
-  const { courseId, lectureId, registration } = router.query
-  const [isRegistrationProcess, setIsRegistrationProcess] = useState(
-    registration === 'true'
-  )
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [passwordRepeat, setPasswordRepeat] = useState('')
+  const { courseId, lectureId } = router.query
+  const [isRegistrationProcess, setIsRegistrationProcess] = useState(false)
+  const [inputEmail, setInputEmail] = useState('')
+  const [inputPassword, setInputPassword] = useState('')
+  const [inputPasswordRepeat, setInputPasswordRepeat] = useState('')
   const [errors, setErrors] = useState({})
   const [needToCheckMail, setNeedToCheckMail] = useState(false)
+
+  const inputEmailRef = useRef()
+  const inputPasswordRef = useRef()
+
+  useEffect(() => {
+    if (router.query?.registration === 'true') setIsRegistrationProcess(true)
+  }, [router])
+
+  useEffect(() => {
+    if (router.query?.email && inputPasswordRef.current) {
+      setInputEmail(router.query.email)
+      inputPasswordRef?.current?.focus()
+    }
+  }, [router, inputPasswordRef.current])
 
   const submit = () => {
     const newErrors = {}
 
-    if (email === '') {
+    if (inputEmail === '') {
       newErrors.email = 'Укажите Email'
-    } else if (!emailValidator(email)) {
+    } else if (!emailValidator(inputEmail)) {
       newErrors.email = 'Email указан не верно'
     }
 
-    if (password === '') {
+    if (inputPassword === '') {
       newErrors.password = 'Введите пароль'
     } else if (isRegistrationProcess) {
-      if (!passwordValidator(password)) {
+      if (!passwordValidator(inputPassword)) {
         newErrors.password =
           'Пароль должен содержать строчные и заглавные буквы, а также минимум одну цифру'
-      } else if (password !== passwordRepeat) {
+      } else if (inputPassword !== inputPasswordRepeat) {
         newErrors.password = 'Пароли не совпадают'
       }
     }
@@ -146,31 +160,34 @@ const Login = () => {
 
     if (isRegistrationProcess) {
       // Если это регистрация
-      postData(`/api/emailconfirm`, { email, password }, (res) => {
-        if (res.error === 'User already registered') {
-          console.log('!!!')
-          setErrors({
-            email: 'Пользователь с таким Email уже зарегистрирован',
-          })
-          setPassword('')
-          setPasswordRepeat('')
-        } else if (res.error) {
-          setErrors({
-            email: res.error,
-          })
-        } else {
-          setNeedToCheckMail(true)
+      postData(
+        `/api/emailconfirm`,
+        { email: inputEmail, password: inputPassword },
+        (res) => {
+          if (res.error === 'User already registered') {
+            setErrors({
+              email: 'Пользователь с таким Email уже зарегистрирован',
+            })
+            setInputPassword('')
+            setInputPasswordRepeat('')
+          } else if (res.error) {
+            setErrors({
+              email: res.error,
+            })
+          } else {
+            setNeedToCheckMail(true)
+          }
         }
-      })
+      )
     } else {
       // Если это авторизация
       signIn('credentials', {
         redirect: false,
-        username: email.toLowerCase(),
-        password,
+        username: inputEmail.toLowerCase(),
+        password: inputPassword,
       }).then((res) => {
         if (res.error === 'CredentialsSignin') {
-          setPassword('')
+          setInputPassword('')
           setErrors({ password: 'Логин или пароль не верны' })
         }
       })
@@ -186,13 +203,16 @@ const Login = () => {
   }
 
   useEffect(() => {
-    if (!session && status !== 'loading') {
-      // signIn('google')
-    } else if (status === 'authenticated') {
-      if (courseId && lectureId) router.push(`/course/${courseId}/${lectureId}`)
-      else router.push(`/cabinet`)
+    if (router) {
+      if (!session && status !== 'loading') {
+        // signIn('google')
+      } else if (status === 'authenticated') {
+        if (courseId && lectureId)
+          router.push(`/course/${courseId}/${lectureId}`)
+        else router.push(`/cabinet`)
+      }
     }
-  }, [!!session, status])
+  }, [!!session, status, router])
 
   return (
     <div className="box-border w-screen h-screen overflow-hidden">
@@ -242,26 +262,28 @@ const Login = () => {
             ) : (
               <>
                 <Input
+                  inputRef={inputEmailRef}
                   className="mt-0"
                   type="text"
                   name="E-Mail"
                   icon={faUser}
                   onChange={(event) => {
                     updateErrors('email', null)
-                    setEmail(event.target.value)
+                    setInputEmail(event.target.value)
                   }}
-                  value={email}
+                  value={inputEmail}
                   error={errors.email}
                 />
                 <Input
+                  inputRef={inputPasswordRef}
                   type="password"
                   name="Пароль"
                   icon={faLock}
                   onChange={(event) => {
                     updateErrors('password', null)
-                    setPassword(event.target.value)
+                    setInputPassword(event.target.value)
                   }}
-                  value={password}
+                  value={inputPassword}
                   error={errors.password}
                 />
                 <Input
@@ -270,9 +292,9 @@ const Login = () => {
                   icon={faLock}
                   onChange={(event) => {
                     updateErrors('password', null)
-                    setPasswordRepeat(event.target.value)
+                    setInputPasswordRepeat(event.target.value)
                   }}
-                  value={passwordRepeat}
+                  value={inputPasswordRepeat}
                   hidden={!isRegistrationProcess}
                   error={errors.password}
                   tabIndex={isRegistrationProcess ? 0 : -1}

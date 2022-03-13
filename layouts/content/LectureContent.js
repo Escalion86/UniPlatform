@@ -18,6 +18,9 @@ import InputImage from '@components/InputImage'
 import Button from '@components/Button'
 import Link from 'next/link'
 import ButtonLink from '@components/ButtonLink'
+import { useRecoilState, useSetRecoilState } from 'recoil'
+import { modalsAtom, modalsFuncAtom } from '@state/atoms'
+import { addScaleCorrection } from 'framer-motion'
 
 const LectureContent = ({
   course,
@@ -33,6 +36,9 @@ const LectureContent = ({
   setIsSideOpen,
   refreshPage,
 }) => {
+  const [modals, setModals] = useRecoilState(modalsAtom)
+  const [modalsFunc, setModalsFunc] = useRecoilState(modalsFuncAtom)
+
   const isOpenedCourse = !activeLecture
   const videoUrl = isOpenedCourse ? course?.videoUrl : activeLecture?.videoUrl
 

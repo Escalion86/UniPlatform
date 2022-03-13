@@ -22,7 +22,7 @@ export default async function handler(req, res) {
     const userCourse = await UsersCourses.create({
       courseId: course._id,
       userId: query.id,
-      status: MODES.ADMIN,
+      role: MODES.ADMIN,
     })
     return res
       ?.status(200)

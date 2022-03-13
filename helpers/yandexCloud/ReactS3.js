@@ -4,11 +4,8 @@ import { dateISOString, xAmzDate, dateYMD, dateUTCString } from './Date'
 import { throwError } from './ErrorThrower'
 
 class S3FileUpload {
-  static async uploadFile(file, config, service = 'aws') {
-    let url
-    if (service === 'yandex')
-      url = `http://${config.bucketName}.storage.yandexcloud.net/`
-    else url = `https://${config.bucketName}.s3.amazonaws.com/`
+  static async uploadFile(file, config) {
+    const url = `http://${config.bucketName}.storage.yandexcloud.net/`
 
     // Error Thrower :x:
     throwError(config, file)
@@ -60,17 +57,11 @@ class S3FileUpload {
       result: data,
     })
   }
-  static async deleteFile(fileName, config, service = 'aws') {
+  static async deleteFile(fileName, config) {
     const fd = new FormData()
-    let url
-    if (service === 'yandex')
-      url = `http://${config.bucketName}.storage.yandexcloud.net/${
-        config.dirName ? config.dirName + '/' : ''
-      }${fileName}`
-    else
-      url = `https://${config.bucketName}.s3-${config.region}.amazonaws.com/${
-        config.dirName ? config.dirName + '/' : ''
-      }${fileName}`
+    const url = `http://${config.bucketName}.storage.yandexcloud.net/${
+      config.dirName ? config.dirName + '/' : ''
+    }${fileName}`
 
     // const url = `https://${config.bucketName}.s3-${config.region}.amazonaws.com/${config.dirName ? config.dirName + "/" : ""}${fileName}`;
     fd.append('Date', xAmzDate)

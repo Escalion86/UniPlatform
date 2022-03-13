@@ -1,36 +1,34 @@
 import cn from 'classnames'
 
 const ComboBox = ({
-  name,
   title,
-  defaultValue = '',
+  defaultValue,
   onChange,
   placeholder,
   items,
-  inLine = false,
+  inLine = true,
   disabled = false,
+  className,
+  labelClassName,
+  selectClassName,
 }) => {
-  const defaultItem = items.find((item) => item.value === defaultValue)
-  const defaultValueExists = !!defaultItem
+  const defaultItem = defaultValue
+    ? items.find((item) => item.value === defaultValue)
+    : null
 
   return (
-    <div
-      className={cn('flex', inLine ? 'flex-row items-center ' : 'flex-col ')}
-    >
-      <label
-        className={cn({ 'min-w-24 max-w-40 w-1/4': inLine })}
-        htmlFor={name}
-      >
+    <div className={cn('flex gap-1', { 'flex-col': !inLine }, className)}>
+      <label className={cn('text-text whitespace-nowrap', labelClassName)}>
         {title}
       </label>
       <select
-        name={name}
         className={cn(
-          'px-1 rounded-sm border',
-          disabled ? 'bg-gray-200 outline-none' : 'bg-white border-gray-600'
+          'flex-1 px-1 rounded border cursor-pointer outline-none',
+          disabled ? 'bg-gray-200' : 'bg-white border-gray-400',
+          selectClassName
         )}
         onChange={(e) => !disabled && onChange && onChange(e.target.value)}
-        defaultValue={defaultValueExists ? defaultValue : ''}
+        defaultValue={defaultItem ? defaultValue : ''}
       >
         {placeholder && (
           <option disabled value="">
@@ -38,7 +36,11 @@ const ComboBox = ({
           </option>
         )}
         {items.map((item, index) => (
-          <option key={'combo' + index} value={item.value}>
+          <option
+            className="cursor-pointer"
+            key={'combo' + index}
+            value={item.value}
+          >
             {item.name}
           </option>
         ))}
