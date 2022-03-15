@@ -26,6 +26,10 @@ const chaptersSchema = {
     type: Number,
     default: 0,
   },
+  visible: {
+    type: Boolean,
+    default: false,
+  },
 }
 
 export default chaptersSchema

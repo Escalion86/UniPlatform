@@ -53,6 +53,31 @@ import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
 import modalsFuncGenerator from '@layouts/modals/modalsFuncGenerator'
 import Button from '@components/Button'
 
+const UserCard = ({ user }) => (
+  <li className="border-t border-gray-400 last:border-b">
+    <div className="flex items-center w-full px-2 py-1 text-lg bg-white cursor-pointer gap-x-2 hover:bg-gray-200">
+      <img
+        className="h-12 border border-gray-400 rounded-full"
+        src={user.image || '/img/users/male_gray.jpg'}
+        alt="course icon"
+        // width={48}
+        // height={48}
+      />
+      <div>
+        <div>{user.name || '[имя не указано]'}</div>
+        <div className="text-sm">
+          {/* <span>EMail:</span> */}
+          <span className="ml-1">{user.email}</span>
+          {/* <span className="ml-2">Лекции:</span>
+              <span className="ml-1">{course.lecturesCount},</span>
+              <span className="ml-2">Задания:</span>
+              <span className="ml-1">{course.tasksCount}</span> */}
+        </div>
+      </div>
+    </div>
+  </li>
+)
+
 function CoursePage(props) {
   const {
     activeLecture,
@@ -63,7 +88,7 @@ function CoursePage(props) {
     tasks,
     answers,
     user,
-    userCourseAccess = MODES.STUDENT,
+    userCourseAccess = MODES.VIEWER,
     userViewedLecturesIds,
     usersInCourse,
     page,
@@ -74,30 +99,6 @@ function CoursePage(props) {
 
   useEffect(() => {
     setModalsFunc(modalsFuncGenerator(setModals))
-    // const addModal = (props) => setModals((modals) => [...modals, props])
-
-    // setModalsFunc({
-    //   addModal,
-    //   confirmModal: ({
-    //     title = 'Отмена изменений',
-    //     text = 'Вы уверены, что хотите закрыть окно без сохранения изменений?',
-    //     onConfirm,
-    //   }) => {
-    //     addModal({
-    //       title,
-    //       text,
-    //       onConfirm,
-    //     })
-    //   },
-    //   customModal: ({ title, text, onConfirm, Children }) => {
-    //     addModal({
-    //       title,
-    //       text,
-    //       onConfirm,
-    //       Children,
-    //     })
-    //   },
-    // })
   }, [])
 
   const [isSideOpen, setIsSideOpen] = useState(true)
@@ -158,33 +159,8 @@ function CoursePage(props) {
     (user) => user.statusInCourse === MODES.STUDENT
   )
 
-  const UserCard = ({ user }) => (
-    <li className="border-t border-gray-400 last:border-b">
-      <Link href={`/user/${user._id}`}>
-        <a>
-          <div className="flex items-center w-full px-2 py-1 text-lg bg-white cursor-pointer gap-x-2 hover:bg-gray-200">
-            <img
-              className="h-12 border border-gray-400 rounded-full"
-              src={user.image || '/img/users/male_gray.png'}
-              alt="course icon"
-              // width={48}
-              // height={48}
-            />
-            <div>
-              <div>{user.name || '[без названия]'}</div>
-              <div className="text-sm">
-                {/* <span>EMail:</span> */}
-                <span className="ml-1">{user.email}</span>
-                {/* <span className="ml-2">Лекции:</span>
-                <span className="ml-1">{course.lecturesCount},</span>
-                <span className="ml-2">Задания:</span>
-                <span className="ml-1">{course.tasksCount}</span> */}
-              </div>
-            </div>
-          </div>
-        </a>
-      </Link>
-    </li>
+  const viewers = usersInCourse.filter(
+    (user) => user.statusInCourse === MODES.VIEWER
   )
 
   return (
@@ -244,8 +220,23 @@ function CoursePage(props) {
                 />
               )}
               {page === 'users' && (
-                <ContentWrapper className="py-2">
-                  <div className="mx-2">Администраторы:</div>
+                <ContentWrapper>
+                  <div
+                    className={cn(
+                      'overflow-hidden duration-200 h-auto',
+                      isSideOpen ? 'w-0' : 'w-56'
+                    )}
+                  >
+                    <button
+                      onClick={() => setIsSideOpen(true)}
+                      className={cn(
+                        'w-56 h-12 p-2 text-white bg-black border border-gray-200 bg-opacity-90 hover:bg-gray-600'
+                      )}
+                    >
+                      Оглавление
+                    </button>
+                  </div>
+                  <div className="pt-2 mx-2">Администраторы:</div>
                   <ul className="w-full">
                     {admins.map((user) => (
                       <UserCard key={user._id} user={user} />
@@ -266,6 +257,16 @@ function CoursePage(props) {
                       <div className="mx-2">Студенты:</div>
                       <ul className="w-full">
                         {students.map((user) => (
+                          <UserCard key={user._id} user={user} />
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                  {viewers.length > 0 && (
+                    <>
+                      <div className="mx-2">Наблюдатели:</div>
+                      <ul className="w-full">
+                        {viewers.map((user) => (
                           <UserCard key={user._id} user={user} />
                         ))}
                       </ul>

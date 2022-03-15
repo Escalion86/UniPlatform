@@ -26,6 +26,10 @@ const lecturesSchema = {
     type: String,
     default: null,
   },
+  visible: {
+    type: Boolean,
+    default: false,
+  },
 }
 
 export default lecturesSchema
