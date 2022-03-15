@@ -61,7 +61,7 @@ const EditableTextarea = ({
   uncontrolled = true,
   btnSaveName = 'Сохранить',
   disableUndo = false,
-  title = 'nerker',
+  title,
 }) => {
   const [textHtml, setTextHtml] = useState(html)
   const [isSaveProcess, setIsSaveProcess] = useState(false)
