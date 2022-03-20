@@ -15,6 +15,9 @@ import {
   useRecoilValue,
 } from 'recoil'
 
+import { ToastContainer, toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+
 // import { createStore, applyMiddleware, compose } from 'redux'
 // import thunk from 'redux-thunk'
 // import { Provider } from 'react-redux'

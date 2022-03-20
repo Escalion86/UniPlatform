@@ -52,6 +52,8 @@ import { modalsAtom, modalsFuncAtom } from '@state/atoms'
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
 import modalsFuncGenerator from '@layouts/modals/modalsFuncGenerator'
 import Button from '@components/Button'
+import { ToastContainer } from 'react-toastify'
+// import { resetServerContext } from '@react-forked/dnd'
 
 const UserCard = ({ user }) => (
   <li className="border-t border-gray-400 last:border-b">
@@ -297,6 +299,17 @@ function CoursePage(props) {
         {modals.map((modalProps, index) => (
           <Modal {...modalProps} index={index} key={'modal' + index} />
         ))}
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          draggable={false}
+          // pauseOnVisibilityChange={false}
+          // closeOnClick
+          // pauseOnHover
+          style={{ top: 66 }}
+        />
       </CourseWrapper>
     </>
   )
@@ -344,6 +357,7 @@ const arrayToObjId = (arr, idKey = '_id') => {
 export const getServerSideProps = async (context) => {
   const session = await getSession({ req: context.req })
   await dbConnect()
+  // resetServerContext()
 
   const { params } = context
   const { courseId, lectureId } = params

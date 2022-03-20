@@ -27,10 +27,12 @@ export const putData = async (
 
     mutate(url, data, false) // Update the local data without a revalidation
     if (callbackOnSuccess) callbackOnSuccess(data)
+    return data
   } catch (error) {
     console.log('Failed to update (PUT) on ' + url)
     console.log(error)
     if (callbackOnError) callbackOnError(error)
+    return null
   }
 }
 

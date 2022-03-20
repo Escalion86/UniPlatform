@@ -1,3 +1,4 @@
+import { Editor, EditorState } from 'draft-js'
 import {
   faAlignCenter,
   faAlignJustify,
@@ -5,14 +6,18 @@ import {
   faAlignRight,
   faBan,
   faBold,
+  faEraser,
   faFont,
   faHeading,
   faItalic,
   faPencilAlt,
+  faRedo,
   faStrikethrough,
   faSubscript,
   faSuperscript,
   faUnderline,
+  faUndo,
+  faWindowMinimize,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import cn from 'classnames'
@@ -65,6 +70,9 @@ const EditableTextarea = ({
 }) => {
   const [textHtml, setTextHtml] = useState(html)
   const [isSaveProcess, setIsSaveProcess] = useState(false)
+  // const [editorState, setEditorState] = useState(() =>
+  //   EditorState.createEmpty()
+  // )
 
   const saveTask = async () => {
     if (onSave) {
@@ -78,6 +86,12 @@ const EditableTextarea = ({
       setIsSaveProcess(false)
     if (html !== textHtml) setTextHtml(html)
   }, [html])
+
+  // return (
+  //   <div>
+  //     <Editor editorState={editorState} onChange={setEditorState} />
+  //   </div>
+  // )
 
   return (
     <div>
@@ -98,9 +112,9 @@ const EditableTextarea = ({
               <TextareaButton cmd="bold" icon={faBold} />
               <TextareaButton cmd="underline" icon={faUnderline} />
               <TextareaButton cmd="strikeThrough" icon={faStrikethrough} />
-              {/* <Button cmd="subscript" icon={faSubscript} />
-          <Button cmd="superscript" icon={faSuperscript} /> */}
-              {/* <Button cmd="removeFormat" icon={faBan} /> */}
+              <TextareaButton cmd="subscript" icon={faSubscript} />
+              <TextareaButton cmd="superscript" icon={faSuperscript} />
+              <TextareaButton cmd="removeFormat" icon={faEraser} />
             </GroupButtons>
             <GroupButtons name="Размер">
               <TextareaButton
@@ -146,13 +160,36 @@ const EditableTextarea = ({
               <TextareaButton cmd="justifyRight" icon={faAlignRight} />
               <TextareaButton cmd="justifyFull" icon={faAlignJustify} />
             </GroupButtons>
+            <GroupButtons name="Тест">
+              <TextareaButton
+                cmd="hiliteColor"
+                icon={faAlignLeft}
+                arg="#123456"
+              />
+              <TextareaButton
+                cmd="foreColor"
+                icon={faAlignLeft}
+                arg="#EE0000"
+              />
+              <TextareaButton
+                cmd="insertHorizontalRule"
+                icon={faWindowMinimize}
+              />
+
+              <TextareaButton cmd="undo" icon={faUndo} />
+              <TextareaButton cmd="redo" icon={faRedo} />
+              <TextareaButton cmd="redo" icon={faRedo} />
+              {/* <TextareaButton cmd="justifyCenter" icon={faAlignCenter} />
+              <TextareaButton cmd="justifyRight" icon={faAlignRight} />
+              <TextareaButton cmd="justifyFull" icon={faAlignJustify} /> */}
+            </GroupButtons>
             {/* <GroupButtons name="Список">
           <Button cmd="superscript" icon={faAlignLeft} />
         </GroupButtons> */}
           </div>
           <Divider thin light />
           <ContentEditable
-            className={cn('outline-none my-2', className)}
+            className={cn('outline-none list-disc my-2', className)}
             html={uncontrolled ? textHtml : html}
             disabled={disabled}
             // onChange={onChange}
@@ -196,6 +233,7 @@ const EditableTextarea = ({
           </div>
         </div>
       )}
+      <div>{textHtml}</div>
     </div>
   )
 }

@@ -93,28 +93,18 @@ export async function deleteChapterAndHisBranch(
       // Находим все главы курса
       const chapters = await Chapters.find({ courseId })
 
-      // console.log('chapters', chapters)
-
       // Смотрим индексы разделов и обновляем их по необходимости
       const sortedChapters = chapters.sort((a, b) =>
         a.index < b.index ? -1 : 1
       )
-      // console.log('sortedChapters', sortedChapters)
-      // console.log(
-      //   'sortedChaptersIndexes',
-      //   sortedChapters.map((c) => c.index)
-      // )
+
       for (let i = 0; i < sortedChapters.length; i++) {
-        // console.log('i', i)
-        // console.log('sortedChapters[i].index', sortedChapters[i].index)
         if (i === chapter.index) continue
         if (i > chapter.index) {
-          // console.log('update1', sortedChapters[i].index, ' to ', i - 1)
           await Chapters.findByIdAndUpdate(sortedChapters[i]._id, {
             index: i - 1,
           })
         } else if (sortedChapters[i].index !== i) {
-          // console.log('update2', sortedChapters[i].index, ' to ', i)
           await Chapters.findByIdAndUpdate(sortedChapters[i]._id, { index: i })
         }
       }

@@ -28,6 +28,101 @@ import {
 import { LoadingSpinner } from '@components/index'
 
 import { DragDropContext, Droppable, Draggable } from '@react-forked/dnd'
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
+
+import { atom } from 'recoil'
+import { toast } from 'react-toastify'
+
+const dragingAtom = atom({
+  key: 'draging', // unique ID (with respect to other atoms/selectors)
+  default: null, // default value (aka initial value)
+})
+
+const onDragEnd = async (
+  result,
+  state,
+  setState,
+  apiDirName,
+  callbackOnSuccess,
+  callbackOnError
+) => {
+  const { destination, source } = result
+
+  if (
+    destination &&
+    destination.droppableId === source.droppableId &&
+    source.index !== destination.index
+  ) {
+    const newState = []
+
+    for (let i = 0; i < state.length; i++) {
+      if (state[i].index === source.index) {
+        newState.push({
+          ...state[i],
+          index: destination.index,
+        })
+      } else if (destination.index < source.index) {
+        if (
+          state[i].index >= destination.index &&
+          state[i].index < source.index
+        ) {
+          newState.push({
+            ...state[i],
+            index: state[i].index + 1,
+          })
+        } else {
+          newState.push(state[i])
+        }
+      } else {
+        if (
+          state[i].index <= destination.index &&
+          state[i].index > source.index
+        ) {
+          newState.push({
+            ...state[i],
+            index: state[i].index - 1,
+          })
+        } else {
+          newState.push(state[i])
+        }
+      }
+    }
+    const itemsToChangeIndex = []
+    for (let i = 0; i < newState.length; i++) {
+      if (state[i].index !== newState[i].index) {
+        itemsToChangeIndex.push({
+          id: newState[i]._id,
+          newIndex: newState[i].index,
+        })
+      }
+    }
+
+    setState(newState)
+
+    if (apiDirName) {
+      try {
+        for (let i = 0; i < itemsToChangeIndex.length; i++) {
+          const res = await putData(
+            `/api/${apiDirName}/${itemsToChangeIndex[i].id}`,
+            {
+              index: itemsToChangeIndex[i].newIndex,
+            }
+          )
+          if (!res) {
+            callbackOnError && callbackOnError()
+            setState(state)
+            return
+          }
+        }
+      } catch (e) {
+        callbackOnError && callbackOnError()
+        setState(state)
+        return
+      }
+      callbackOnSuccess && callbackOnSuccess()
+    }
+  }
+}
 
 const Lecture = ({
   courseId,
@@ -35,10 +130,12 @@ const Lecture = ({
   tasks,
   answers,
   mode,
+  chapter,
   userViewedLecturesIds,
   activeLectureId,
   refreshPage,
 }) => {
+  const dragging = useRecoilValue(dragingAtom)
   const [isProcessUpdateVisible, setIsProcessUpdateVisible] = useState(false)
   const tasksOfLecture = tasks.filter((task) => task.lectureId === lecture._id)
   const lectureHaveTasks = !!tasksOfLecture.length
@@ -76,101 +173,127 @@ const Lecture = ({
   ).length
 
   return (
-    // <div key={'lecture' + lecture.index} className="block">
-    <Link
-      key={'lecture' + lecture.index}
-      href={`/course/${courseId}/${lecture._id}`}
-    >
-      <a
-        // onClick={() => setClicked(true)}
-        // animate={clicked ? { backgroundColor: 'green' } : {}}
-        className={cn(
-          'px-4 py-2 flex gap-x-3 duration-300 items-center transition-colors cursor-pointer hover:bg-gray-400',
-          { 'bg-gray-300': activeLectureId === lecture._id }
-        )}
+    <div>
+      <Draggable
+        draggableId={lecture._id}
+        index={lecture.index}
+        type={'LECTURE_OF_CHAPTER_' + chapter.index}
+        isDragDisabled={false}
+        // shouldRespectForceTouch={false}
       >
-        {mode === MODES.STUDENT && (
-          <CheckBox checked={userViewedLecturesIds.includes(lecture._id)} />
-        )}
-        {mode === MODES.ADMIN &&
-          (isProcessUpdateVisible ? (
-            <div className={'w-7 h-7 flex items-center rounded-full -mx-1'}>
-              <LoadingSpinner size="xs" />
-            </div>
-          ) : (
-            <div
-              className={cn(
-                'w-7 h-7 flex items-center rounded-full p-1 -mx-1 border-opacity-0 hover:border-opacity-100 border hover:scale-125 duration-300',
-                lecture.visible ? 'text-success' : 'text-danger',
-                lecture.visible ? 'border-success' : 'border-danger'
-              )}
-              onClick={(e) => {
-                e.preventDefault()
-                toggleVisible()
-              }}
+        {(providedLecture, snapshot) => (
+          <div
+            ref={providedLecture.innerRef}
+            {...providedLecture.draggableProps}
+            {...providedLecture.dragHandleProps}
+          >
+            <Link
+              key={'lecture' + lecture.index}
+              href={`/course/${courseId}/${lecture._id}`}
             >
-              <FontAwesomeIcon icon={lecture.visible ? faEye : faEyeSlash} />
-            </div>
-          ))}
-        <span className="flex-1">{`${lecture.index + 1}. ${
-          lecture.title
-        }`}</span>
-        {mode === MODES.TEACHER && (
-          <div
-            className={cn(
-              'flex p-1 justify-center items-center -ml-1.5 border-2 rounded-full min-w-6 h-6 w-6',
-              // TASK_ICON_STATUSES['sended'].color,
-              tasksWithStatusSendedCount === 0
-                ? 'border-success text-success'
-                : cn(
-                    TASK_ICON_STATUSES['sended'].border,
-                    TASK_ICON_STATUSES['sended'].color
-                  )
-            )}
-          >
-            {tasksWithStatusSendedCount > 0 ? (
-              tasksWithStatusSendedCount > 99 ? (
-                '>99'
-              ) : (
-                tasksWithStatusSendedCount
-              )
-            ) : (
-              <FontAwesomeIcon icon={faCheck} />
-            )}
+              <a
+                // onClick={() => setClicked(true)}
+                // animate={clicked ? { backgroundColor: 'green' } : {}}
+                className={cn(
+                  'px-4 py-2 flex gap-x-3 duration-300 items-center transition-colors cursor-pointer',
+                  { 'bg-gray-300': activeLectureId === lecture._id },
+                  { 'hover:bg-gray-400': !dragging }
+                )}
+              >
+                {mode === MODES.STUDENT && (
+                  <CheckBox
+                    checked={userViewedLecturesIds.includes(lecture._id)}
+                  />
+                )}
+                {mode === MODES.ADMIN &&
+                  (isProcessUpdateVisible ? (
+                    <div
+                      className={'w-7 h-7 flex items-center rounded-full -mx-1'}
+                    >
+                      <LoadingSpinner size="xs" />
+                    </div>
+                  ) : (
+                    <div
+                      className={cn(
+                        'w-7 h-7 flex items-center rounded-full p-1 -mx-1 border-opacity-0 hover:border-opacity-100 border hover:scale-125 duration-300',
+                        lecture.visible ? 'text-success' : 'text-danger',
+                        lecture.visible ? 'border-success' : 'border-danger'
+                      )}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        toggleVisible()
+                      }}
+                    >
+                      <FontAwesomeIcon
+                        icon={lecture.visible ? faEye : faEyeSlash}
+                      />
+                    </div>
+                  ))}
+                <span className="flex-1">{`${lecture.index + 1}. ${
+                  lecture.title
+                }`}</span>
+                {mode === MODES.TEACHER && (
+                  <div
+                    className={cn(
+                      'flex p-1 justify-center items-center -ml-1.5 border-2 rounded-full min-w-6 h-6 w-6',
+                      // TASK_ICON_STATUSES['sended'].color,
+                      tasksWithStatusSendedCount === 0
+                        ? 'border-success text-success'
+                        : cn(
+                            TASK_ICON_STATUSES['sended'].border,
+                            TASK_ICON_STATUSES['sended'].color
+                          )
+                    )}
+                  >
+                    {tasksWithStatusSendedCount > 0 ? (
+                      tasksWithStatusSendedCount > 99 ? (
+                        '>99'
+                      ) : (
+                        tasksWithStatusSendedCount
+                      )
+                    ) : (
+                      <FontAwesomeIcon icon={faCheck} />
+                    )}
+                  </div>
+                )}
+                {mode !== MODES.TEACHER && lectureHaveTasks && (
+                  <div
+                    className={cn('relative flex items-center justify-center', {
+                      'text-secondary': status === 'sended',
+                      'text-success': status === 'confirmed',
+                      'text-danger': status === 'declined',
+                    })}
+                    style={{ width: 20 }}
+                  >
+                    <div
+                      className="absolute text-xs font-bold"
+                      style={{ top: 4 }}
+                    >
+                      {tasksOfLectureIds.length}
+                    </div>
+                    <FontAwesomeIcon className="-mt-0.5" icon={faCalendar} />
+                  </div>
+                )}
+                {mode === MODES.ADMIN && (
+                  <div
+                    className={
+                      ' border-transparent border hover:border-danger p-1.5 -ml-1 -my-1 -mr-2 rounded-full relative duration-300 hover:scale-125 flex items-center w-8 h-8 justify-center text-danger'
+                    }
+                    style={{ width: 20 }}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      deleteLecture()
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faTrash} />
+                  </div>
+                )}
+              </a>
+            </Link>
           </div>
         )}
-        {mode !== MODES.TEACHER && lectureHaveTasks && (
-          <div
-            className={cn('relative flex items-center justify-center', {
-              'text-secondary': status === 'sended',
-              'text-success': status === 'confirmed',
-              'text-danger': status === 'declined',
-            })}
-            style={{ width: 20 }}
-          >
-            <div className="absolute text-xs font-bold" style={{ top: 4 }}>
-              {tasksOfLectureIds.length}
-            </div>
-            <FontAwesomeIcon className="-mt-0.5" icon={faCalendar} />
-          </div>
-        )}
-        {mode === MODES.ADMIN && (
-          <div
-            className={
-              ' border-transparent border hover:border-danger p-1.5 -ml-1 -my-1 -mr-2 rounded-full relative duration-300 hover:scale-125 flex items-center w-8 h-8 justify-center text-danger'
-            }
-            style={{ width: 20 }}
-            onClick={(e) => {
-              e.preventDefault()
-              deleteLecture()
-            }}
-          >
-            <FontAwesomeIcon icon={faTrash} />
-          </div>
-        )}
-      </a>
-    </Link>
-    // </div>
+      </Draggable>
+    </div>
   )
 }
 
@@ -184,22 +307,68 @@ const Lectures = ({
   refreshPage,
   chapter,
 }) => {
+  const [lecturesState, setLecturesState] = useState(lectures)
+  const [dragging, setDragging] = useRecoilState(dragingAtom)
+
+  // useEffect(() => {
+  //   // setLecturesState(lectures)
+  //   if (chapter.index === 0) console.log(lectures)
+  // }, [lectures])
+
+  // useEffect(() => {
+  //   if (chapter.index === 0) console.log('lecturesState', lecturesState)
+  // }, [lecturesState])
+
   const courseId = chapter.courseId
+
+  const droppableType = 'LECTURE_OF_CHAPTER_' + chapter.index
+
   return (
     <div className="w-full">
-      {lectures.map((lecture) => (
-        <Lecture
-          key={lecture._id}
-          courseId={courseId}
-          lecture={lecture}
-          tasks={tasks}
-          answers={answers}
-          mode={mode}
-          userViewedLecturesIds={userViewedLecturesIds}
-          activeLectureId={activeLectureId}
-          refreshPage={refreshPage}
-        />
-      ))}
+      <DragDropContext
+        onDragEnd={(result) => {
+          setDragging(null)
+          onDragEnd(
+            result,
+            lecturesState,
+            setLecturesState,
+            'lectures',
+            () => toast.success('Лекция перемещена'),
+            () => toast.error('Ошибка перемещения лекции')
+          )
+        }}
+        onDragStart={(res) => setDragging(res.type)}
+      >
+        <Droppable droppableId="lectures" type={droppableType}>
+          {(providedLecture) => (
+            <div
+              ref={providedLecture.innerRef}
+              {...providedLecture.droppableProps}
+              className={cn('duration-500', {
+                'bg-green-200': dragging === droppableType,
+              })}
+            >
+              {lecturesState
+                .sort((a, b) => (a.index < b.index ? -1 : 1))
+                .map((lecture) => (
+                  <Lecture
+                    key={lecture._id}
+                    courseId={courseId}
+                    lecture={lecture}
+                    tasks={tasks}
+                    answers={answers}
+                    mode={mode}
+                    chapter={chapter}
+                    userViewedLecturesIds={userViewedLecturesIds}
+                    activeLectureId={activeLectureId}
+                    refreshPage={refreshPage}
+                  />
+                ))}
+              {providedLecture.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
       {mode === MODES.ADMIN && (
         <div
           className={
@@ -209,7 +378,7 @@ const Lectures = ({
             e.preventDefault()
             postData(
               `/api/lectures`,
-              { chapterId: chapter._id, index: lectures.length },
+              { chapterId: chapter._id, index: lecturesState.length },
               (newLecture) => {
                 refreshPage(newLecture._id)
               }
@@ -239,32 +408,30 @@ const Chapter = ({
   activeChapterId,
 }) => {
   const [opened, setOpened] = useState(chapter._id === activeChapterId)
+  const dragging = useRecoilValue(dragingAtom)
 
-  const chapterLectures = lectures
-    .filter(
-      (lecture) =>
-        lecture.chapterId === chapter._id &&
-        (mode === MODES.ADMIN || lecture.visible)
-    )
-    .sort((a, b) => a.index < b.index)
+  const chapterLectures = lectures.filter(
+    (lecture) =>
+      lecture.chapterId === chapter._id &&
+      (mode === MODES.ADMIN || lecture.visible)
+  )
+  // .sort((a, b) => (a.index < b.index ? -1 : 1))
 
   if (chapterLectures.length === 0 && mode !== MODES.ADMIN) return <div></div>
 
   return (
-    <Draggable draggableId={chapter._id} index={chapter.index}>
+    <Draggable draggableId={chapter._id} index={chapter.index} type="CHAPTER">
       {(providedChapter, snapshot) => (
-        <div
-          ref={providedChapter.innerRef}
-          {...providedChapter.draggableProps}
-          {...providedChapter.dragHandleProps}
-        >
+        <div ref={providedChapter.innerRef} {...providedChapter.draggableProps}>
           <div
             onClick={() => setOpened((state) => !state)}
             className={cn(
-              'flex items-center px-4 py-3 cursor-pointer hover:bg-gray-400',
-              activeChapterId === chapter._id ? 'bg-gray-300' : 'bg-gray-200'
+              'flex items-center px-4 py-3 cursor-pointer',
+              activeChapterId === chapter._id ? 'bg-gray-300' : 'bg-gray-200',
+              { 'hover:bg-gray-400': !dragging }
             )}
             style={{ borderTop: '1px solid #d1d7dc' }}
+            {...providedChapter.dragHandleProps}
           >
             <div className="flex-1">
               <div className="font-bold">{`Раздел ${chapter.index + 1}${
@@ -294,7 +461,7 @@ const Chapter = ({
           <motion.ul
             animate={{ height: opened ? 'auto' : 0 }}
             initial={{ height: 0 }}
-            className="flex flex-col overflow-y-hidden"
+            className="flex flex-col overflow-clip"
           >
             <Lectures
               lectures={chapterLectures}
@@ -328,6 +495,7 @@ const Chapters = ({
   setLoading,
 }) => {
   const [chaptersState, setChaptersState] = useState(chapters)
+  const [dragging, setDragging] = useRecoilState(dragingAtom)
 
   const deleteChapter = async (id) => {
     setLoading(true)
@@ -348,9 +516,9 @@ const Chapters = ({
     }
   }
 
-  useEffect(() => {
-    setChaptersState(chapters)
-  }, [chapters])
+  // useEffect(() => {
+  //   setChaptersState(chapters)
+  // }, [chapters])
 
   // const filteredChapters = chapters.filter((chapter) => {
   //   const chapterLectures = lectures.filter(
@@ -361,101 +529,52 @@ const Chapters = ({
   //   return chapterLectures.length > 0
   // })
 
-  const onDragEnd = async (result) => {
-    const { destination, source, draggableId } = result
-    if (
-      destination.droppableId === 'chapters' &&
-      source.droppableId === 'chapters' &&
-      source.index !== destination.index
-    ) {
-      const newChaptersState = []
-      // const chaptersToChangeIndex = []
-      // newChaptersState[source.index] = destination.index
-      // newChaptersState[source.index] = destination.index
-      for (let i = 0; i < chaptersState.length; i++) {
-        if (chaptersState[i].index === source.index) {
-          newChaptersState.push({
-            ...chaptersState[i],
-            index: destination.index,
-          })
-        } else if (destination.index < source.index) {
-          if (
-            chaptersState[i].index >= destination.index &&
-            chaptersState[i].index < source.index
-          ) {
-            newChaptersState.push({
-              ...chaptersState[i],
-              index: chaptersState[i].index + 1,
-            })
-          } else {
-            newChaptersState.push(chaptersState[i])
-          }
-        } else {
-          if (
-            chaptersState[i].index <= destination.index &&
-            chaptersState[i].index > source.index
-          ) {
-            newChaptersState.push({
-              ...chaptersState[i],
-              index: chaptersState[i].index - 1,
-            })
-          } else {
-            newChaptersState.push(chaptersState[i])
-          }
-        }
-      }
-      const chaptersToChangeIndex = []
-      for (let i = 0; i < newChaptersState.length; i++) {
-        if (chaptersState[i].index !== newChaptersState[i].index) {
-          chaptersToChangeIndex.push({
-            id: newChaptersState[i]._id,
-            newIndex: newChaptersState[i].index,
-          })
-        }
-      }
-      // console.log(chaptersState[i].index, ' to ', newChaptersState[i].index)
+  // const chaptersLectures = {}
 
-      setChaptersState(newChaptersState)
-
-      for (let i = 0; i < chaptersToChangeIndex.length; i++) {
-        await putData(`/api/chapters/${chaptersToChangeIndex[i].id}`, {
-          index: chaptersToChangeIndex[i].newIndex,
-        })
-      }
-
-      // await putData(`/api/chapters/${draggableId}`, {
-      //   index: destination.index,
-      // })
-      // for (let i = 0; i < chaptersState.length; i++) {
-      //   if (destination.index < source.index) {
-      //     if (
-      //       chaptersState[i].index >= destination.index &&
-      //       chaptersState[i].index < source.index
-      //     ) {
-      //       await putData(`/api/chapters/${chaptersState[i]._id}`, {
-      //         index: chaptersState[i].index + 1,
-      //       })
-      //     }
-      //   } else {
-      //     if (
-      //       chaptersState[i].index <= destination.index &&
-      //       chaptersState[i].index > source.index
-      //     ) {
-      //       await putData(`/api/chapters/${chaptersState[i]._id}`, {
-      //         index: chaptersState[i].index - 1,
-      //       })
-      //     }
-      //   }
-      // }
-      refreshPage()
-    }
-  }
+  // chapters
+  //   .sort((a, b) => (a.index < b.index ? -1 : 1))
+  //   .forEach((chapter) => {
+  //     chaptersLectures[chapter._id] = []
+  //     lectures.forEach((lecture) => {
+  //       if (
+  //         lecture.chapterId === chapter._id &&
+  //         (mode === MODES.ADMIN || lecture.visible)
+  //       ) {
+  //         chaptersLectures[chapter._id].push(lecture)
+  //       }
+  //     })
+  //   })
 
   return (
     <>
-      <DragDropContext onDragEnd={onDragEnd}>
-        <Droppable droppableId="chapters">
-          {(providedChapter) => (
+      <DragDropContext
+        onDragEnd={async (result) => {
+          setDragging(null)
+          onDragEnd(
+            result,
+            chaptersState,
+            setChaptersState,
+            'chapters',
+            () => toast.success('Глава перемещена'),
+            () => toast.error('Ошибка перемещения главы')
+          )
+        }}
+        // onDragEnd(
+        //   result,
+        //   chaptersState,
+        //   setChaptersState,
+        //   'chapters',
+
+        //   () => {
+        //     const notify = toast('глава перемещена')
+        //   }
+        //   // refreshPage
+        // )
+
+        onDragStart={(res) => setDragging(res.type)}
+      >
+        <Droppable droppableId="chapters" type="CHAPTER">
+          {(providedChapter, snapshot) => (
             <div
               ref={providedChapter.innerRef}
               {...providedChapter.droppableProps}
@@ -525,17 +644,21 @@ const SideBar = ({
   goToCourseGeneralPage,
   setLoading,
 }) => {
+  const [winReady, setwinReady] = useState(false)
+  useEffect(() => {
+    setwinReady(true)
+  }, [])
   return (
     <motion.div
       animate={
         isSideOpen ? { width: mode === MODES.ADMIN ? 350 : 300 } : { width: 0 }
       }
-      className="flex justify-end overflow-y-auto bg-bg"
+      className="flex justify-end h-full max-h-full overflow-y-auto bg-bg"
       style={{ gridArea: 'sidebar' }}
     >
       <div
-        className="overflow-y-auto border-gray-300 border-r-1"
-        style={{ minWidth: mode === MODES.ADMIN ? 350 : 300 }}
+        className="w-full border-gray-300 border-r-1"
+        style={{ minWidth: 300 }}
       >
         <div className="flex items-center px-4 py-2">
           <div className="flex-1 font-bold">Оглавление</div>
@@ -546,23 +669,32 @@ const SideBar = ({
             <FontAwesomeIcon icon={faTimes} />
           </button>
         </div>
-        <Chapters
-          courseId={course._id}
-          chapters={chapters}
-          lectures={lectures}
-          tasks={tasks}
-          answers={answers}
-          activeLectureId={activeLecture?._id}
-          activeChapterId={activeChapter?._id}
-          userViewedLecturesIds={userViewedLecturesIds}
-          mode={mode}
-          refreshPage={refreshPage}
-          goToCourseGeneralPage={goToCourseGeneralPage}
-          setLoading={setLoading}
-        />
+        {winReady ? (
+          <Chapters
+            courseId={course._id}
+            chapters={chapters}
+            lectures={lectures}
+            tasks={tasks}
+            answers={answers}
+            activeLectureId={activeLecture?._id}
+            activeChapterId={activeChapter?._id}
+            userViewedLecturesIds={userViewedLecturesIds}
+            mode={mode}
+            refreshPage={refreshPage}
+            goToCourseGeneralPage={goToCourseGeneralPage}
+            setLoading={setLoading}
+          />
+        ) : null}
       </div>
     </motion.div>
   )
 }
 
 export default SideBar
+
+// export const getServerSideProps = async (context) => {
+//   resetServerContext()
+//   return {
+//     props: {},
+//   }
+// }
